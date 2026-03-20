@@ -1,5 +1,6 @@
 const CACHE_TTL_MS = 30_000;
-const cacheKey = (account) => `taskchain-cache:${account}`;
+const normalizeAccount = (account) => (account || "").toLowerCase();
+const cacheKey = (account) => `taskchain-cache:${normalizeAccount(account)}`;
 
 export function readCachedTasks(account) {
   const key = cacheKey(account);

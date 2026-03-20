@@ -51,8 +51,9 @@ export default function App() {
 
     try {
       let nextProvider = new BrowserProvider(window.ethereum);
-      const accounts = await nextProvider.send("eth_requestAccounts", []);
+      await nextProvider.send("eth_requestAccounts", []);
       nextProvider = await ensureSepolia(nextProvider);
+      const accounts = await nextProvider.send("eth_accounts", []);
       setProvider(nextProvider);
       setAccount(accounts[0]);
       setStatus("Wallet connected.");
@@ -128,11 +129,16 @@ export default function App() {
     setIsSubmitting(true);
     try {
       const contract = await getContract(true);
+      const signer = await contract.runner.getSigner();
+      const signerAddress = await signer.getAddress();
+      if (signerAddress.toLowerCase() !== account.toLowerCase()) {
+        setAccount(signerAddress);
+      }
       const tx = await contract.createTask(newTask.trim());
       setStatus("Transaction sent. Waiting for confirmation...");
       await tx.wait();
 
-      clearCachedTasks(account);
+      clearCachedTasks(signerAddress);
       setNewTask("");
       await fetchTasks();
       setStatus("Task created successfully.");
@@ -147,11 +153,16 @@ export default function App() {
     setIsSubmitting(true);
     try {
       const contract = await getContract(true);
+      const signer = await contract.runner.getSigner();
+      const signerAddress = await signer.getAddress();
+      if (signerAddress.toLowerCase() !== account.toLowerCase()) {
+        setAccount(signerAddress);
+      }
       const tx = await contract.toggleTask(id);
       setStatus("Toggle submitted. Waiting for confirmation...");
       await tx.wait();
 
-      clearCachedTasks(account);
+      clearCachedTasks(signerAddress);
       await fetchTasks();
       setStatus("Task updated successfully.");
     } catch (error) {
