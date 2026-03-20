@@ -1,4 +1,4 @@
-# Level 3 Orange Belt - ![alt text](image.png)dApp
+# Level 3 Orange Belt - TaskChain Mini dApp
 
 A complete end-to-end mini dApp submission built with:
 - Smart contract: Solidity + Hardhat
@@ -113,6 +113,11 @@ Screenshot requirement:
 ![Test Output](assets/test-output.png)
 ```
 
+Actual screenshots:
+
+![Test Output](assets/test-output.png)
+![App Evidence](assets/testevidence.png)
+
 ## Submission Checklist Mapping
 
 - [x] Mini-dApp fully functional
@@ -178,6 +183,16 @@ npm run deploy:sepolia
 - Build Command: `npm run build`
 - Output Directory: `dist`
 - Environment Variable: `VITE_CONTRACT_ADDRESS`
+
+### Vercel troubleshooting: "Missing VITE_CONTRACT_ADDRESS"
+
+If production shows `Missing VITE_CONTRACT_ADDRESS in frontend env`:
+
+1. Open Vercel project settings -> Environment Variables.
+2. Add `VITE_CONTRACT_ADDRESS` with your deployed Sepolia contract address.
+3. Ensure no extra spaces or quotes in the value.
+4. Redeploy the latest commit after saving the variable.
+5. Hard refresh deployed URL.
 
 ### Alternative: Netlify
 
