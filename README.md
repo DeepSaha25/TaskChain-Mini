@@ -143,12 +143,6 @@ Demo video:
 
 [Watch Demo Video](assets/demo.mp4)
 
-## Submission Checklist
-
-- [x] dApp functionality completed
-- [x] At least 3 tests included and passing
-- [x] README completed
-- [x] Demo video included
 
 ## Final Links (Update Before Submission)
 
