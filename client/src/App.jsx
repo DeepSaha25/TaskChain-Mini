@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { BrowserProvider, Contract } from "ethers";
+import { BrowserProvider, Contract, getAddress, isAddress } from "ethers";
 import ProgressBar from "./components/ProgressBar";
 import { TASK_REGISTRY_ABI, TASK_REGISTRY_ADDRESS } from "./lib/contract";
 import { clearCachedTasks, readCachedTasks, writeCachedTasks } from "./lib/cache";
+
+const SEPOLIA_CHAIN_ID = 11155111n;
 
 export default function App() {
   const [account, setAccount] = useState("");
@@ -24,12 +26,33 @@ export default function App() {
     }
   }, []);
 
+  async function ensureSepolia(nextProvider) {
+    const network = await nextProvider.getNetwork();
+    if (network.chainId === SEPOLIA_CHAIN_ID) return nextProvider;
+
+    if (!window.ethereum) {
+      throw new Error("MetaMask not found. Please install it to use this dApp.");
+    }
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0xaa36a7" }]
+      });
+    } catch (error) {
+      throw new Error("Please switch MetaMask network to Sepolia and try again.");
+    }
+
+    return new BrowserProvider(window.ethereum);
+  }
+
   async function connectWallet() {
     if (!window.ethereum) return;
 
     try {
-      const nextProvider = new BrowserProvider(window.ethereum);
+      let nextProvider = new BrowserProvider(window.ethereum);
       const accounts = await nextProvider.send("eth_requestAccounts", []);
+      nextProvider = await ensureSepolia(nextProvider);
       setProvider(nextProvider);
       setAccount(accounts[0]);
       setStatus("Wallet connected.");
@@ -42,12 +65,23 @@ export default function App() {
     if (!provider) throw new Error("Wallet not connected");
     if (!TASK_REGISTRY_ADDRESS) throw new Error("Missing VITE_CONTRACT_ADDRESS in frontend env");
 
-    if (useSigner) {
-      const signer = await provider.getSigner();
-      return new Contract(TASK_REGISTRY_ADDRESS, TASK_REGISTRY_ABI, signer);
+    const checkedProvider = await ensureSepolia(provider);
+    if (checkedProvider !== provider) {
+      setProvider(checkedProvider);
     }
 
-    return new Contract(TASK_REGISTRY_ADDRESS, TASK_REGISTRY_ABI, provider);
+    const rawAddress = TASK_REGISTRY_ADDRESS.trim();
+    if (!isAddress(rawAddress)) {
+      throw new Error("Invalid VITE_CONTRACT_ADDRESS. It must be a full 0x... address.");
+    }
+    const contractAddress = getAddress(rawAddress);
+
+    if (useSigner) {
+      const signer = await checkedProvider.getSigner();
+      return new Contract(contractAddress, TASK_REGISTRY_ABI, signer);
+    }
+
+    return new Contract(contractAddress, TASK_REGISTRY_ABI, checkedProvider);
   }
 
   async function fetchTasks() {
