@@ -97,7 +97,7 @@ export default function App() {
 
     setIsFetching(true);
     try {
-      const contract = await getContract(false);
+      const contract = await getContract(true);
       const ids = await contract.getMyTaskIds();
       const items = await Promise.all(
         ids.map(async (id) => {
