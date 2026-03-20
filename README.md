@@ -1,33 +1,45 @@
-# Level 3 Orange Belt - TaskChain Mini dApp
+# TaskChain Mini dApp
 
-A complete end-to-end mini dApp submission built with:
-- Smart contract: Solidity + Hardhat
+TaskChain Mini is a full-stack Web3 task manager built for Orange Belt Level 3. It includes a Solidity smart contract, a React frontend, and a tested Hardhat workflow.
+
+## Stack
+
+- Smart contracts: Solidity + Hardhat
 - Frontend: React + Vite + ethers.js
-- Tests: Hardhat test suite (4 tests)
-- UX quality: loading states, transaction progress indicator, and local caching
+- Testing: Hardhat test suite
+- UX: transaction progress feedback + short-lived local cache
 
-## Features
+## What It Does
 
-- Connect wallet (MetaMask)
-- Create personal tasks on-chain
-- Toggle task status (done/pending)
-- Fetch only your task IDs and details
-- Transaction loading state + animated progress bar
-- Basic cache layer with `localStorage` + TTL (30s)
+- Connects a wallet (MetaMask)
+- Creates personal tasks on-chain
+- Toggles task completion status
+- Loads only the connected wallet's tasks
+- Shows transaction/loading progress
+- Caches reads in localStorage (TTL: 30s)
 
-## Project Structure
+## Workspace Structure
 
 ```text
 .
-├── contracts
+├── client/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/ProgressBar.jsx
+│   │   └── lib/
+│   │       ├── cache.js
+│   │       └── contract.js
+│   └── package.json
+├── contracts/
 │   ├── contracts/TaskRegistry.sol
-│   ├── test/TaskRegistry.test.js
 │   ├── scripts/deploy.js
-│   └── hardhat.config.js
-└── client
-    ├── src/App.jsx
-    ├── src/lib/cache.js
-    └── src/components/ProgressBar.jsx
+│   ├── test/TaskRegistry.test.js
+│   └── package.json
+├── assets/
+│   ├── demo.mp4
+│   ├── test-output.png
+│   └── testevidence.png
+└── vercel.json
 ```
 
 ## Prerequisites
@@ -36,186 +48,110 @@ A complete end-to-end mini dApp submission built with:
 - npm 9+
 - MetaMask browser extension
 
-## 1. Smart Contract Setup
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+cd contracts && npm install
+cd ../client && npm install
+```
+
+### 2. Compile and Test Contracts
 
 ```bash
 cd contracts
-npm install
 npm run compile
 npm test
 ```
 
-### Deploy locally
-
-```bash
-npx hardhat node
-# new terminal
-cd contracts
-npm run deploy:local -- --network localhost
-```
-
-### Deploy to Sepolia
-
-1. Copy env template:
-
-```bash
-cd contracts
-cp .env.example .env
-```
-
-2. Fill values in `.env`:
-- `RPC_URL`
-- `PRIVATE_KEY`
-
-3. Deploy:
-
-```bash
-npm run deploy:sepolia
-```
-
-## 2. Frontend Setup
-
-1. Copy frontend env:
+### 3. Run Frontend Locally
 
 ```bash
 cd client
 cp .env.example .env
-```
-
-2. Set `VITE_CONTRACT_ADDRESS` to deployed contract address.
-
-3. Start app:
-
-```bash
-npm install
+# set VITE_CONTRACT_ADDRESS in .env
 npm run dev
 ```
 
-4. Open URL shown by Vite (usually `http://localhost:5173`).
+Open the local URL shown by Vite (usually http://localhost:5173).
 
-## Testing Evidence (3+ tests)
+## Contract Deployment
 
-Run:
+### Localhost Deployment
+
+In terminal 1:
 
 ```bash
 cd contracts
-npm test
+npx hardhat node
 ```
 
-Expected: at least 3 tests pass. This project includes 4 passing tests.
+In terminal 2:
 
-Screenshot requirement:
-- Capture your terminal after `npm test`
-- Save screenshot in repository, for example: `assets/test-output.png`
-- Add image markdown below:
-
-```md
-![Test Output](assets/test-output.png)
+```bash
+cd contracts
+npm run deploy:local -- --network localhost
 ```
 
-Actual screenshots:
+### Sepolia Deployment
 
-![Test Output](assets/test-output.png)
-![App Evidence](assets/testevidence.png)
+```bash
+cd contracts
+cp .env.example .env
+```
 
-Demo video file:
+Add these values to contracts/.env:
 
-[Watch Demo Video](assets/demo.mp4)
+- RPC_URL
+- PRIVATE_KEY
 
-## Submission Checklist Mapping
-
-- [x] Mini-dApp fully functional
-- [x] Minimum 3 tests passing (4 included)
-- [x] README complete
-- [x] Demo video recorded (assets/demo.mp4)
-- [ ] Minimum 3+ meaningful commits (perform during your development flow)
-
-## Required Links (Add Before Submission)
-
-- Live demo: `https://your-deployment-url.vercel.app`
-- Demo video (1 minute): `assets/demo.mp4`
-- Public repository: `https://github.com/your-username/your-repo`
-
-## Deploy-Ready Environment Checklist (Sepolia + Vercel)
-
-Use this checklist right before deployment.
-
-### Sepolia (contracts)
-
-- [ ] `contracts/.env` created from `.env.example`
-- [ ] `RPC_URL` is set to a working Sepolia RPC endpoint
-- [ ] `PRIVATE_KEY` is set (no `0x` prefix)
-- [ ] Deployer wallet funded with Sepolia ETH
-- [ ] Contract deployment command succeeds:
+Then deploy:
 
 ```bash
 cd contracts
 npm run deploy:sepolia
 ```
 
-- [ ] Deployed contract address copied for frontend env
+Copy the deployed contract address into client/.env as VITE_CONTRACT_ADDRESS.
 
-### Vercel (frontend)
+## Frontend Deployment (Vercel)
 
-- [ ] Vercel project created with root directory set to `client`
-- [ ] Build command: `npm run build`
-- [ ] Output directory: `dist`
-- [ ] Environment variable added in Vercel:
-    - `VITE_CONTRACT_ADDRESS=<your-sepolia-contract-address>`
-- [ ] Redeploy triggered after setting environment variable
-- [ ] Live URL loads and wallet actions work (connect/create/toggle/refresh)
+This repo includes vercel.json configured for client build output.
 
-### Post-deploy sanity checks
+- Install command: npm install --prefix client
+- Build command: npm run build --prefix client
+- Output directory: client/dist
 
-- [ ] Create a new task from deployed app
-- [ ] Toggle task completion
-- [ ] Confirm transaction on Sepolia explorer
-- [ ] Update README live demo link with final URL
+Required environment variable on Vercel:
 
-## Recommended Commit Plan (3+ meaningful commits)
+- VITE_CONTRACT_ADDRESS=<your-deployed-contract-address>
 
-1. `feat(contract): add TaskRegistry contract and deployment script`
-2. `test(contract): add TaskRegistry hardhat tests`
-3. `feat(frontend): build wallet-connected task manager UI with caching and loading states`
-4. `docs: add complete Orange Belt submission README`
+If your app shows a missing contract address error, verify the variable and redeploy.
 
-## Deployment
+## Test and Demo Evidence
 
-### Frontend on Vercel (recommended)
+Test screenshot:
 
-- Root Directory: `client`
-- Build Command: `npm run build`
-- Output Directory: `dist`
-- Environment Variable: `VITE_CONTRACT_ADDRESS`
+![Test Output](assets/test-output.png)
 
-### Vercel troubleshooting: "Missing VITE_CONTRACT_ADDRESS"
+App screenshot:
 
-If production shows `Missing VITE_CONTRACT_ADDRESS in frontend env`:
+![App Evidence](assets/testevidence.png)
 
-1. Open Vercel project settings -> Environment Variables.
-2. Add `VITE_CONTRACT_ADDRESS` with your deployed Sepolia contract address.
-3. Ensure no extra spaces or quotes in the value.
-4. Redeploy the latest commit after saving the variable.
-5. Hard refresh deployed URL.
+Demo video:
 
-### Alternative: Netlify
+[Watch Demo Video](assets/demo.mp4)
 
-- Base directory: `client`
-- Build command: `npm run build`
-- Publish directory: `client/dist`
+## Submission Checklist
 
-## Contract Notes
+- [x] dApp functionality completed
+- [x] At least 3 tests included and passing
+- [x] README completed
+- [x] Demo video included
 
-`TaskRegistry` enforces ownership:
-- Only task owner can toggle its completion state
-- Task IDs are tracked per owner
-- Public getter returns task details by ID
+## Final Links (Update Before Submission)
 
-## Demo Video Script (1 minute)
-
-1. Show wallet connection
-2. Create a task and wait for confirmation progress
-3. Refresh and show cached load behavior
-4. Toggle task state
-5. Show test command and passing output
-6. Show README links section
+- Live app: https://taskchainmini.vercel.app/
+- Repository: https://github.com/DeepSaha25/TaskChain-Mini
+- Demo video: assets/demo.mp4
