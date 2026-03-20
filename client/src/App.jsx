@@ -85,11 +85,11 @@ export default function App() {
     return new Contract(contractAddress, TASK_REGISTRY_ABI, checkedProvider);
   }
 
-  async function fetchTasks() {
+  async function fetchTasks(force = false) {
     if (!account) return;
 
-    const cached = readCachedTasks(account);
-    if (cached) {
+    const cached = force ? null : readCachedTasks(account);
+    if (cached && cached.length > 0) {
       setTasks(cached);
       setStatus("Loaded tasks from cache.");
       return;
@@ -140,7 +140,7 @@ export default function App() {
 
       clearCachedTasks(signerAddress);
       setNewTask("");
-      await fetchTasks();
+      await fetchTasks(true);
       setStatus("Task created successfully.");
     } catch (error) {
       setStatus(error.shortMessage || error.message || "Failed to create task.");
@@ -163,7 +163,7 @@ export default function App() {
       await tx.wait();
 
       clearCachedTasks(signerAddress);
-      await fetchTasks();
+      await fetchTasks(true);
       setStatus("Task updated successfully.");
     } catch (error) {
       setStatus(error.shortMessage || error.message || "Failed to update task.");
@@ -182,7 +182,7 @@ export default function App() {
             <button onClick={connectWallet} disabled={isSubmitting}>
               {account ? `Connected: ${shortAccount}` : "Connect Wallet"}
             </button>
-            <button onClick={fetchTasks} disabled={!account || isFetching || isSubmitting}>
+            <button onClick={() => fetchTasks(true)} disabled={!account || isFetching || isSubmitting}>
               {isFetching ? "Loading..." : "Refresh Tasks"}
             </button>
           </div>
