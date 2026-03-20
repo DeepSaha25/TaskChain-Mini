@@ -118,18 +118,22 @@ Actual screenshots:
 ![Test Output](assets/test-output.png)
 ![App Evidence](assets/testevidence.png)
 
+Demo video file:
+
+[Watch Demo Video](assets/demo.mp4)
+
 ## Submission Checklist Mapping
 
 - [x] Mini-dApp fully functional
 - [x] Minimum 3 tests passing (4 included)
 - [x] README complete
-- [ ] Demo video recorded (add your link)
+- [x] Demo video recorded (assets/demo.mp4)
 - [ ] Minimum 3+ meaningful commits (perform during your development flow)
 
 ## Required Links (Add Before Submission)
 
 - Live demo: `https://your-deployment-url.vercel.app`
-- Demo video (1 minute): `https://youtube.com/your-demo-link`
+- Demo video (1 minute): `assets/demo.mp4`
 - Public repository: `https://github.com/your-username/your-repo`
 
 ## Deploy-Ready Environment Checklist (Sepolia + Vercel)
