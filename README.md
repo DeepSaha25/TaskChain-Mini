@@ -1,4 +1,4 @@
-# Level 3 Orange Belt - TaskChain Mini dApp
+# Level 3 Orange Belt - ![alt text](image.png)dApp
 
 A complete end-to-end mini dApp submission built with:
 - Smart contract: Solidity + Hardhat
