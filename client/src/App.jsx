@@ -129,7 +129,7 @@ export default function App() {
     setIsSubmitting(true);
     try {
       const contract = await getContract(true);
-      const signer = await contract.runner.getSigner();
+      const signer = await provider.getSigner();
       const signerAddress = await signer.getAddress();
       if (signerAddress.toLowerCase() !== account.toLowerCase()) {
         setAccount(signerAddress);
@@ -153,7 +153,7 @@ export default function App() {
     setIsSubmitting(true);
     try {
       const contract = await getContract(true);
-      const signer = await contract.runner.getSigner();
+      const signer = await provider.getSigner();
       const signerAddress = await signer.getAddress();
       if (signerAddress.toLowerCase() !== account.toLowerCase()) {
         setAccount(signerAddress);
