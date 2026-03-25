@@ -35,6 +35,20 @@ function getSimulationErrorMessage(simResp) {
   }
 }
 
+function getTransactionXdr(txOrBuilder) {
+  const tx = typeof txOrBuilder?.build === "function" ? txOrBuilder.build() : txOrBuilder;
+
+  if (typeof tx?.toXDR === "function") {
+    return tx.toXDR();
+  }
+
+  if (typeof tx?.toEnvelope === "function") {
+    return tx.toEnvelope().toXDR("base64");
+  }
+
+  throw new Error("Unable to serialize transaction for wallet signing");
+}
+
 export default function App() {
   const [account, setAccount] = useState("");
   const [tasks, setTasks] = useState([]);
@@ -286,19 +300,22 @@ export default function App() {
 
       // Assemble with resource fees
       const assembled = SorobanRpc.assembleTransaction(tx, simResp);
+      const unsignedTxXdr = getTransactionXdr(assembled);
 
       // Sign with Freighter
       setStatus("Waiting for signature...");
-      const signResult = await signTransaction(assembled.toEnvelope().toXDR("base64"), {
+      const signResult = await signTransaction(unsignedTxXdr, {
         networkPassphrase: STELLAR_NETWORK,
         address: account
       });
       const signedTxn = signResult?.signedTxXdr;
       if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
+      const signedTxObj = TransactionBuilder.fromXDR(signedTxn, STELLAR_NETWORK);
+
       // Send to network
       setStatus("Submitting transaction...");
-      const txResponse = await sorobanServer.sendTransaction(signedTxn);
+      const txResponse = await sorobanServer.sendTransaction(signedTxObj);
 
       // Poll for transaction completion
       let txResult = txResponse;
@@ -376,19 +393,22 @@ export default function App() {
       }
 
       const assembled = SorobanRpc.assembleTransaction(tx, simResp);
+      const unsignedTxXdr = getTransactionXdr(assembled);
 
       // Sign
       setStatus("Waiting for signature...");
-      const signResult = await signTransaction(assembled.toEnvelope().toXDR("base64"), {
+      const signResult = await signTransaction(unsignedTxXdr, {
         networkPassphrase: STELLAR_NETWORK,
         address: account
       });
       const signedTxn = signResult?.signedTxXdr;
       if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
+      const signedTxObj = TransactionBuilder.fromXDR(signedTxn, STELLAR_NETWORK);
+
       // Send
       setStatus("Submitting transaction...");
-      const txResponse = await sorobanServer.sendTransaction(signedTxn);
+      const txResponse = await sorobanServer.sendTransaction(signedTxObj);
 
       // Poll
       let txResult = txResponse;
