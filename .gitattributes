@@ -1,0 +1,18 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Force LF for Rust files (required for cargo fmt)
+*.rs text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Force LF for shell scripts
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.mp4 binary
+*.wasm binary

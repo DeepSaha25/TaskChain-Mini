@@ -1,15 +1,17 @@
 # Node modules
 node_modules/
 **/node_modules/
-package-lock.json
-**/package-lock.json
 
 # Build outputs
 client/dist/
+contracts/target/
 cache/
 artifacts/
 typechain-types/
 coverage/
+
+# Vite cache
+.vite/
 
 # Env files
 .env
