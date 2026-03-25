@@ -49,6 +49,32 @@ function getTransactionXdr(txOrBuilder) {
   throw new Error("Unable to serialize transaction for wallet signing");
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForTransaction(server, hash, maxAttempts = 40, delayMs = 1500) {
+  let lastResult = { status: "NOT_FOUND" };
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const result = await server.getTransaction(hash);
+    lastResult = result || { status: "NOT_FOUND" };
+
+    if (lastResult.status === "SUCCESS" || lastResult.status === "FAILED") {
+      return lastResult;
+    }
+
+    if (lastResult.status === "NOT_FOUND" || lastResult.status === "PENDING") {
+      await sleep(delayMs);
+      continue;
+    }
+
+    return lastResult;
+  }
+
+  return lastResult;
+}
+
 export default function App() {
   const [account, setAccount] = useState("");
   const [tasks, setTasks] = useState([]);
@@ -317,19 +343,23 @@ export default function App() {
       setStatus("Submitting transaction...");
       const txResponse = await sorobanServer.sendTransaction(signedTxObj);
 
-      // Poll for transaction completion
-      let txResult = txResponse;
-      while (txResult.status === "PENDING") {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        txResult = await sorobanServer.getTransaction(txResult.hash);
+      if (!txResponse?.hash) {
+        throw new Error(`Transaction submission did not return a hash: ${JSON.stringify(txResponse)}`);
       }
 
+      if (txResponse.status === "ERROR") {
+        throw new Error(`Transaction submission failed: ${JSON.stringify(txResponse)}`);
+      }
+
+      // Poll for transaction completion
+      const txResult = await waitForTransaction(sorobanServer, txResponse.hash);
+
       if (txResult.status === "FAILED") {
-        throw new Error("Transaction failed on chain");
+        throw new Error(`Transaction failed on chain: ${JSON.stringify(txResult)}`);
       }
 
       if (txResult.status !== "SUCCESS") {
-        throw new Error(`Unexpected transaction status: ${txResult.status}`);
+        throw new Error(`Unexpected transaction status: ${txResult.status} (hash: ${txResponse.hash})`);
       }
 
       setNewTask("");
@@ -410,19 +440,23 @@ export default function App() {
       setStatus("Submitting transaction...");
       const txResponse = await sorobanServer.sendTransaction(signedTxObj);
 
-      // Poll
-      let txResult = txResponse;
-      while (txResult.status === "PENDING") {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        txResult = await sorobanServer.getTransaction(txResult.hash);
+      if (!txResponse?.hash) {
+        throw new Error(`Transaction submission did not return a hash: ${JSON.stringify(txResponse)}`);
       }
 
+      if (txResponse.status === "ERROR") {
+        throw new Error(`Transaction submission failed: ${JSON.stringify(txResponse)}`);
+      }
+
+      // Poll
+      const txResult = await waitForTransaction(sorobanServer, txResponse.hash);
+
       if (txResult.status === "FAILED") {
-        throw new Error("Transaction failed on chain");
+        throw new Error(`Transaction failed on chain: ${JSON.stringify(txResult)}`);
       }
 
       if (txResult.status !== "SUCCESS") {
-        throw new Error(`Unexpected transaction status: ${txResult.status}`);
+        throw new Error(`Unexpected transaction status: ${txResult.status} (hash: ${txResponse.hash})`);
       }
 
       clearCachedTasks(account);
