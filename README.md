@@ -23,7 +23,7 @@ A **production-ready decentralized task management dApp** built on the **Stellar
 | Mobile responsive view screenshot | ✅ See below |
 | CI/CD pipeline running (badge) | ✅ See badge above |
 | Inter-contract call working | ✅ Reward token minting on task completion |
-| Contract addresses and transaction hash | ✅ See below |
+| Contract address | ✅ See below |
 | Custom token / reward mechanism | ✅ On-chain reward token with balance tracking |
 
 ---
