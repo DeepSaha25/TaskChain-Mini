@@ -68,6 +68,36 @@ export function parseTask(taskData) {
     };
   }
 
+  // Some SDK versions return a positional array for struct values.
+  if (Array.isArray(taskData) && taskData.length >= 5) {
+    return {
+      id: Number(taskData[0]),
+      content: String(taskData[1] ?? ""),
+      done: Boolean(taskData[2]),
+      owner: taskData[3],
+      createdAt: Number(taskData[4] ?? 0)
+    };
+  }
+
+  // Some SDK versions return a Map-like object.
+  if (typeof taskData?.get === "function") {
+    const id = taskData.get("id");
+    const content = taskData.get("content");
+    const done = taskData.get("done");
+    const owner = taskData.get("owner");
+    const createdAt = taskData.get("created_at") ?? taskData.get("createdAt");
+
+    if (id !== undefined) {
+      return {
+        id: Number(id),
+        content: String(content ?? ""),
+        done: Boolean(done),
+        owner,
+        createdAt: Number(createdAt ?? 0)
+      };
+    }
+  }
+
   if (!Array.isArray(taskData.fields)) {
     throw new Error("Invalid task data structure");
   }

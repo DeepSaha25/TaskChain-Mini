@@ -304,7 +304,8 @@ export default function App() {
                 simTaskResp.result?.retval
               ) {
                 const taskVal = simTaskResp.result.retval;
-                return parseTask(taskVal);
+                const nativeTask = scValToNative(taskVal);
+                return parseTask(nativeTask);
               }
 
               return null;
