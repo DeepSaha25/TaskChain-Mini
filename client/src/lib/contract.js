@@ -28,12 +28,12 @@ export const TASK_REGISTRY_SPEC = {
     },
     create_task: {
       name: "create_task",
-      inputs: [{ name: "content", type: "String" }],
+      inputs: [{ name: "caller", type: "Address" }, { name: "content", type: "String" }],
       outputs: [{ type: "U64" }]
     },
     toggle_task: {
       name: "toggle_task",
-      inputs: [{ name: "id", type: "U64" }],
+      inputs: [{ name: "caller", type: "Address" }, { name: "id", type: "U64" }],
       outputs: []
     },
     get_task: {
@@ -41,9 +41,9 @@ export const TASK_REGISTRY_SPEC = {
       inputs: [{ name: "id", type: "U64" }],
       outputs: [{ type: "Task" }]
     },
-    get_my_task_ids: {
-      name: "get_my_task_ids",
-      inputs: [],
+    get_user_task_ids: {
+      name: "get_user_task_ids",
+      inputs: [{ name: "user", type: "Address" }],
       outputs: [{ type: "Vec<U64>" }]
     }
   }
@@ -53,7 +53,22 @@ export const TASK_REGISTRY_SPEC = {
  * Parse a Soroban task contract result
  */
 export function parseTask(taskData) {
-  if (!taskData || !Array.isArray(taskData.fields)) {
+  if (!taskData) {
+    throw new Error("Invalid task data structure");
+  }
+
+  // On newer SDKs, scValToNative(Task) returns an object with named fields.
+  if (typeof taskData === "object" && !Array.isArray(taskData) && "id" in taskData) {
+    return {
+      id: Number(taskData.id),
+      content: taskData.content,
+      done: Boolean(taskData.done),
+      owner: taskData.owner,
+      createdAt: Number(taskData.created_at ?? taskData.createdAt ?? 0)
+    };
+  }
+
+  if (!Array.isArray(taskData.fields)) {
     throw new Error("Invalid task data structure");
   }
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   SorobanRpc,
   Contract,
+  Address,
   Keypair,
   nativeToScVal,
   scValToNative,
@@ -22,6 +23,17 @@ import {
 import { clearCachedTasks, readCachedTasks, writeCachedTasks } from "./lib/cache";
 
 const FREIGHTER_TIMEOUT = 3000; // 3 seconds for Freighter popup
+
+function getSimulationErrorMessage(simResp) {
+  if (!simResp) return "unknown simulation error";
+  if (simResp.error && typeof simResp.error === "string") return simResp.error;
+  if (simResp.result?.error && typeof simResp.result.error === "string") return simResp.result.error;
+  try {
+    return JSON.stringify(simResp);
+  } catch {
+    return "simulation failed with non-serializable response";
+  }
+}
 
 export default function App() {
   const [account, setAccount] = useState("");
@@ -144,7 +156,8 @@ export default function App() {
 
       // Build getMyTaskIds invocation
       const getIdsOp = contract.call(
-        "get_my_task_ids",
+        "get_user_task_ids",
+        new Address(account).toScVal(),
       );
 
       builder.addOperation(getIdsOp);
@@ -256,6 +269,7 @@ export default function App() {
 
       const createOp = contract.call(
         "create_task",
+        new Address(account).toScVal(),
         nativeToScVal(newTask.trim(), { type: "string" })
       );
 
@@ -267,7 +281,7 @@ export default function App() {
       const simResp = await sorobanServer.simulateTransaction(tx);
 
       if (!SorobanRpc.Api.isSimulationSuccess(simResp)) {
-        throw new Error("Transaction simulation failed");
+        throw new Error(`Transaction simulation failed: ${getSimulationErrorMessage(simResp)}`);
       }
 
       // Assemble with resource fees
@@ -346,6 +360,7 @@ export default function App() {
 
       const toggleOp = contract.call(
         "toggle_task",
+        new Address(account).toScVal(),
         nativeToScVal(id, { type: "u64" })
       );
 
@@ -357,7 +372,7 @@ export default function App() {
       const simResp = await sorobanServer.simulateTransaction(tx);
 
       if (!SorobanRpc.Api.isSimulationSuccess(simResp)) {
-        throw new Error("Transaction simulation failed");
+        throw new Error(`Transaction simulation failed: ${getSimulationErrorMessage(simResp)}`);
       }
 
       const assembled = SorobanRpc.assembleTransaction(tx, simResp);
