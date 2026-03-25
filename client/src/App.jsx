@@ -9,7 +9,7 @@ import {
   TransactionBuilder,
   BASE_FEE
 } from "@stellar/stellar-sdk";
-import { getAddress, isConnected, signTransaction } from "@stellar/freighter-api";
+import { getAddress, isConnected, requestAccess, signTransaction } from "@stellar/freighter-api";
 import ProgressBar from "./components/ProgressBar";
 import {
   TASK_REGISTRY_ADDRESS,
@@ -74,12 +74,25 @@ export default function App() {
         throw new Error("Freighter extension not available. Please install and enable it.");
       }
 
-      // Request user's public key through Freighter API
-      const addressResult = await getAddress();
-      const publicKey = addressResult?.address;
+      // Request site permission first (required by Freighter before exposing account)
+      const accessResult = await requestAccess();
+      if (accessResult?.error) {
+        const reason = accessResult.error.message || "Freighter denied access";
+        throw new Error(`Wallet permission required: ${reason}`);
+      }
+
+      // Prefer address from permission response, then fallback to getAddress
+      let publicKey = accessResult?.publicKey || "";
+      if (!publicKey) {
+        const addressResult = await getAddress();
+        if (addressResult?.error) {
+          throw new Error(addressResult.error.message || "Failed to read public key from Freighter");
+        }
+        publicKey = addressResult?.address || "";
+      }
       
       if (!publicKey) {
-        throw new Error(addressResult?.error || "Failed to get public key from Freighter");
+        throw new Error("Failed to get public key from Freighter");
       }
 
       // Verify it's a valid Stellar public key
