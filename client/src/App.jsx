@@ -8,7 +8,7 @@ import {
   Networks,
   TransactionBuilder,
   BASE_FEE
-} from "stellar-sdk";
+} from "@stellar/stellar-sdk";
 import ProgressBar from "./components/ProgressBar";
 import {
   TASK_REGISTRY_ADDRESS,
