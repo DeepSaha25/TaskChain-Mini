@@ -53,11 +53,40 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForTransaction(server, hash, maxAttempts = 40, delayMs = 1500) {
+async function getTransactionStatusXdrSafe(rpcUrl, hash) {
+  const response = await fetch(rpcUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "getTransaction",
+      params: {
+        hash
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`RPC HTTP error: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  if (payload.error) {
+    // Treat lookup failures as not yet indexed.
+    return { status: "NOT_FOUND", error: payload.error };
+  }
+
+  return payload.result || { status: "NOT_FOUND" };
+}
+
+async function waitForTransaction(rpcUrl, hash, maxAttempts = 40, delayMs = 1500) {
   let lastResult = { status: "NOT_FOUND" };
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const result = await server.getTransaction(hash);
+    const result = await getTransactionStatusXdrSafe(rpcUrl, hash);
     lastResult = result || { status: "NOT_FOUND" };
 
     if (lastResult.status === "SUCCESS" || lastResult.status === "FAILED") {
@@ -378,7 +407,7 @@ export default function App() {
       }
 
       // Poll for transaction completion
-      const txResult = await waitForTransaction(sorobanServer, txResponse.hash);
+      const txResult = await waitForTransaction(STELLAR_RPC_URL, txResponse.hash);
 
       if (txResult.status === "FAILED") {
         throw new Error(`Transaction failed on chain: ${JSON.stringify(txResult)}`);
@@ -473,7 +502,7 @@ export default function App() {
       }
 
       // Poll
-      const txResult = await waitForTransaction(sorobanServer, txResponse.hash);
+      const txResult = await waitForTransaction(STELLAR_RPC_URL, txResponse.hash);
 
       if (txResult.status === "FAILED") {
         throw new Error(`Transaction failed on chain: ${JSON.stringify(txResult)}`);
