@@ -75,6 +75,34 @@ async function waitForTransaction(server, hash, maxAttempts = 40, delayMs = 1500
   return lastResult;
 }
 
+async function sendSignedTransactionXdr(rpcUrl, signedTxXdr) {
+  const response = await fetch(rpcUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "sendTransaction",
+      params: {
+        transaction: signedTxXdr
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`RPC HTTP error: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  if (payload.error) {
+    throw new Error(`RPC sendTransaction error: ${JSON.stringify(payload.error)}`);
+  }
+
+  return payload.result;
+}
+
 export default function App() {
   const [account, setAccount] = useState("");
   const [tasks, setTasks] = useState([]);
@@ -337,11 +365,9 @@ export default function App() {
       const signedTxn = signResult?.signedTxXdr;
       if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
-      const signedTxObj = TransactionBuilder.fromXDR(signedTxn, STELLAR_NETWORK);
-
       // Send to network
       setStatus("Submitting transaction...");
-      const txResponse = await sorobanServer.sendTransaction(signedTxObj);
+      const txResponse = await sendSignedTransactionXdr(STELLAR_RPC_URL, signedTxn);
 
       if (!txResponse?.hash) {
         throw new Error(`Transaction submission did not return a hash: ${JSON.stringify(txResponse)}`);
@@ -434,11 +460,9 @@ export default function App() {
       const signedTxn = signResult?.signedTxXdr;
       if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
-      const signedTxObj = TransactionBuilder.fromXDR(signedTxn, STELLAR_NETWORK);
-
       // Send
       setStatus("Submitting transaction...");
-      const txResponse = await sorobanServer.sendTransaction(signedTxObj);
+      const txResponse = await sendSignedTransactionXdr(STELLAR_RPC_URL, signedTxn);
 
       if (!txResponse?.hash) {
         throw new Error(`Transaction submission did not return a hash: ${JSON.stringify(txResponse)}`);
