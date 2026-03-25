@@ -9,6 +9,7 @@ import {
   TransactionBuilder,
   BASE_FEE
 } from "@stellar/stellar-sdk";
+import { getAddress, isConnected, signTransaction } from "@stellar/freighter-api";
 import ProgressBar from "./components/ProgressBar";
 import {
   TASK_REGISTRY_ADDRESS,
@@ -45,47 +46,40 @@ export default function App() {
     }
   }, []);
 
-  // Check for Freighter wallet on mount with retry
+  // Check for Freighter wallet availability via official API
   useEffect(() => {
-    let retryCount = 0;
-    const maxRetries = 5;
-    
-    const checkFreighter = () => {
-      if (window.freighter) {
-        setStatus("Freighter detected. Click 'Connect Freighter' to begin.");
-        console.log("✅ Freighter wallet found!");
-      } else {
-        retryCount++;
-        if (retryCount < maxRetries) {
-          // Retry in 500ms (Freighter might be injecting)
-          setTimeout(checkFreighter, 500);
-        } else {
-          setStatus("Freighter wallet not found. Please install it from freighter.app to use this dApp.");
-          console.warn("❌ Freighter wallet could not be detected after retries");
+    const checkFreighter = async () => {
+      try {
+        const result = await isConnected();
+        if (result?.isConnected) {
+          setStatus("Freighter detected. Click 'Connect Freighter' to begin.");
+          return;
         }
+      } catch (error) {
+        console.error("Freighter availability check failed:", error);
       }
+
+      setStatus("Freighter wallet not found. Please install it from freighter.app and refresh.");
     };
-    
-    // Start checking with a small delay
-    setTimeout(checkFreighter, 100);
+
+    checkFreighter();
   }, []);
 
   async function connectWallet() {
-    // Final check before attempting connection
-    if (!window.freighter) {
-      setStatus("❌ Freighter wallet not detected. Is Freighter unlocked and on testnet?");
-      console.error("window.freighter is undefined");
-      return;
-    }
-
     try {
       setStatus("🔗 Connecting to Freighter...");
 
-      // Request user's public key from Freighter
-      const publicKey = await window.freighter.getPublicKey();
+      const connected = await isConnected();
+      if (!connected?.isConnected) {
+        throw new Error("Freighter extension not available. Please install and enable it.");
+      }
+
+      // Request user's public key through Freighter API
+      const addressResult = await getAddress();
+      const publicKey = addressResult?.address;
       
       if (!publicKey) {
-        throw new Error("Failed to get public key from Freighter");
+        throw new Error(addressResult?.error || "Failed to get public key from Freighter");
       }
 
       // Verify it's a valid Stellar public key
@@ -219,9 +213,8 @@ export default function App() {
 
     setIsSubmitting(true);
     try {
-      if (!window.freighter) {
-        throw new Error("Freighter wallet not connected");
-      }
+      const connected = await isConnected();
+      if (!connected?.isConnected) throw new Error("Freighter wallet not connected");
 
       if (!account || !sorobanServer) {
         throw new Error("Wallet not connected or Soroban server not initialized");
@@ -262,10 +255,12 @@ export default function App() {
 
       // Sign with Freighter
       setStatus("Waiting for signature...");
-      const signedTxn = await window.freighter.signTransaction(
-        assembled.toEnvelope().toXDR(),
-        STELLAR_NETWORK
-      );
+      const signResult = await signTransaction(assembled.toEnvelope().toXDR("base64"), {
+        networkPassphrase: STELLAR_NETWORK,
+        address: account
+      });
+      const signedTxn = signResult?.signedTxXdr;
+      if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
       // Send to network
       setStatus("Submitting transaction...");
@@ -305,9 +300,8 @@ export default function App() {
   async function toggleTask(id) {
     setIsSubmitting(true);
     try {
-      if (!window.freighter) {
-        throw new Error("Freighter wallet not connected");
-      }
+      const connected = await isConnected();
+      if (!connected?.isConnected) throw new Error("Freighter wallet not connected");
 
       if (!account || !sorobanServer) {
         throw new Error("Wallet not connected or Soroban server not initialized");
@@ -347,10 +341,12 @@ export default function App() {
 
       // Sign
       setStatus("Waiting for signature...");
-      const signedTxn = await window.freighter.signTransaction(
-        assembled.toEnvelope().toXDR(),
-        STELLAR_NETWORK
-      );
+      const signResult = await signTransaction(assembled.toEnvelope().toXDR("base64"), {
+        networkPassphrase: STELLAR_NETWORK,
+        address: account
+      });
+      const signedTxn = signResult?.signedTxXdr;
+      if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
       // Send
       setStatus("Submitting transaction...");
