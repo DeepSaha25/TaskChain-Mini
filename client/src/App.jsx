@@ -3,7 +3,7 @@ import {
   SorobanRpc,
   Contract,
   Keypair,
-  nativeToScval,
+  nativeToScVal,
   scValToNative,
   Networks,
   TransactionBuilder,
@@ -181,7 +181,7 @@ export default function App() {
 
               const getTaskOp = contract.call(
                 "get_task",
-                nativeToScval(id, { type: "u64" })
+                nativeToScVal(id, { type: "u64" })
               );
 
               getTaskBuilder.addOperation(getTaskOp);
@@ -256,7 +256,7 @@ export default function App() {
 
       const createOp = contract.call(
         "create_task",
-        nativeToScval(newTask.trim(), { type: "string" })
+        nativeToScVal(newTask.trim(), { type: "string" })
       );
 
       builder.addOperation(createOp);
@@ -346,7 +346,7 @@ export default function App() {
 
       const toggleOp = contract.call(
         "toggle_task",
-        nativeToScval(id, { type: "u64" })
+        nativeToScVal(id, { type: "u64" })
       );
 
       builder.addOperation(toggleOp);

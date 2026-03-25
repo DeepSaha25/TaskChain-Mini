@@ -2,7 +2,6 @@ import {
   Contract, 
   Networks, 
   Keypair,
-  nativeToScval,
   scValToNative
 } from "@stellar/stellar-sdk";
 
