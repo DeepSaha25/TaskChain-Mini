@@ -1,280 +1,157 @@
-# TaskChain Mini dApp - Stellar Edition
+# TaskChain Mini
 
-TaskChain Mini is a full-stack Web3 task manager built on the Stellar blockchain using Soroban smart contracts. It features a Rust smart contract, a React frontend with Stellar SDK, and comprehensive testing.
+TaskChain Mini is an end-to-end Stellar Soroban mini-dApp for personal task management.
+It includes a Rust smart contract, a React frontend with Freighter wallet integration, caching, loading indicators, tests, and deployment.
 
-## 🎮 Submission Links
+## Live Links
 
-| Item | Link |
-|------|------|
-| 🌐 **Live App** | https://taskchainmini.vercel.app |
-| 💾 **GitHub Repository** | https://github.com/DeepSaha25/TaskChain-Mini |
-| 🎬 **Demo Video** | [Watch on YouTube](https://youtu.be/XXXXX) - *See upload instructions below* |
+- Live demo: https://taskchainmini.vercel.app
+- Repository: https://github.com/DeepSaha25/TaskChain-Mini
+- Demo video (local repo file): [assets/demo.mp4](assets/demo.mp4)
 
----
+## Submission Checklist
 
-### 📹 Demo Video Upload Instructions
+- [x] Public GitHub repository
+- [x] Mini-dApp fully functional (wallet connect, create task, toggle task, fetch tasks)
+- [x] Minimum 3 tests passing
+- [x] README with complete documentation
+- [x] 1-minute demo video link included
+- [x] Minimum 3+ meaningful commits
 
-Since the video has encoding issues on GitHub, upload it to YouTube:
+## Features
 
-1. Go to **https://youtube.com**
-2. Click your profile → **Upload a video**  
-3. Select `assets/demo.mp4` from your project
-4. Title: `TaskChain Mini - Stellar dApp Demo`
-5. Visibility: **Public**
-6. Once uploaded, copy the YouTube URL (e.g., `https://youtu.be/xxxxx`)
-7. **Update this README** → Replace `XXXXX` in the Demo Video link with your YouTube video ID
+- Freighter wallet connection with explicit permission flow
+- Create task on-chain
+- Toggle task completion on-chain
+- Fetch wallet-specific task IDs and task data
+- Loading/progress feedback during chain operations
+- Lightweight local cache for task reads
+- Error handling with actionable status messages
 
----
+## Tech Stack
 
-## ✅ Test Results (3/3 Passing)
+- Smart contract: Rust + Soroban SDK
+- Frontend: React + Vite
+- Wallet API: @stellar/freighter-api
+- Chain SDK: @stellar/stellar-sdk
+- Network: Stellar Testnet
 
-![Test Output](assets/test-output.png)
+## Smart Contract
 
-## 📸 Additional Evidence
+Contract source: contracts/src/lib.rs
 
-![Test Evidence](assets/testevidence.png)
+Implemented methods:
 
----
+- init(env)
+- create_task(env, caller: Address, content: String) -> u64
+- toggle_task(env, caller: Address, id: u64)
+- get_task(env, id: u64) -> Option<Task>
+- get_user_task_ids(env, user: Address) -> Vec<u64>
 
-## Stack
+## Contract Deployment
 
-- **Smart Contracts**: Rust + Soroban (Stellar's smart contract platform)
-- **Frontend**: React + Vite + @stellar/js-sdk
-- **Wallet**: Freighter (Stellar wallet)
-- **Network**: Stellar Testnet
-- **Testing**: Rust Cargo tests
-- **UX**: Transaction progress feedback + short-lived local cache (30s TTL)
+Current deployed testnet contract ID:
 
-## What It Does
+- CAH7X2U3V5JSG2AURDO5YSERVCWYYKEBGQBPODJOZI5EU36ALQF3CCCZ
 
-- Connects a Stellar wallet (Freighter)
-- Creates personal tasks on the Stellar blockchain
-- Toggles task completion status
-- Loads only the connected wallet's tasks
-- Shows transaction/loading progress
-- Caches reads in localStorage (TTL: 30s)
+Stellar network settings:
 
-## Workspace Structure
+- Network passphrase: Test SDF Network ; September 2015
+- RPC URL: https://soroban-testnet.stellar.org
 
-```
-.
-├── client/
-│   ├── src/
-│   │   ├── App.jsx                          # Main React app (Stellar SDK)
-│   │   ├── main.jsx
-│   │   ├── styles.css
-│   │   ├── components/
-│   │   │   └── ProgressBar.jsx
-│   │   └── lib/
-│   │       ├── cache.js
-│   │       └── contract.js                  # Stellar contract helpers
-│   ├── package.json
-│   └── vite.config.js
-├── contracts/
-│   ├── src/
-│   │   └── lib.rs                           # Soroban TaskRegistry contract
-│   ├── Cargo.toml                           # Rust project config
-│   ├── .env.example
-│   └── package.json
-├── assets/
-└── README.md (this file)
-```
+## Setup
 
-## Prerequisites
+### Prerequisites
 
-- **Node.js** 18+ and npm 9+
-- **Rust** 1.70+ (for building Soroban contracts)
-- **Soroban CLI** (`soroban` command)
-  ```bash
-  cargo install soroban-cli --locked
-  ```
-- **Freighter Wallet**: Install from [freighter.app](https://freighter.app)
+- Node.js 18+
+- Rust toolchain
+- wasm target installed: wasm32-unknown-unknown
+- Stellar CLI installed
+- Freighter wallet installed
 
-## Quick Start
-
-### 1. Install Dependencies
-
-```bash
-# Install contract build dependencies
-cd contracts && npm install
-
-# Install frontend dependencies
-cd ../client && npm install && cd ..
-```
-
-### 2. Build and Test Contract
+### 1. Install dependencies
 
 ```bash
 cd contracts
+npm install
 
-# Build the contract to WASM
+cd ../client
+npm install
+```
+
+### 2. Build contract
+
+```bash
+cd contracts
 cargo build --target wasm32-unknown-unknown --release
+```
 
-# Run tests
+### 3. Run tests
+
+```bash
+cd contracts
 npm test
 ```
 
-### 3. Deploy Contract to Testnet
+### 4. Configure frontend env
 
-```bash
-cd contracts
+Create `client/.env`:
 
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your Stellar secret key from Freighter
-# SOROBAN_SECRET_KEY=S...
+```env
+VITE_CONTRACT_ADDRESS=CAH7X2U3V5JSG2AURDO5YSERVCWYYKEBGQBPODJOZI5EU36ALQF3CCCZ
 ```
 
-**Getting your Stellar secret key:**
-1. Open Freighter extension
-2. Click settings (gear icon)
-3. Go to Account → Export Secret Key
-4. Copy your secret key (starts with 'S')
-5. Add to `contracts/.env` as `SOROBAN_SECRET_KEY=S...`
-
-Deploy to testnet:
-```bash
-npm run deploy
-```
-
-The script will output a contract address starting with `C`. **Copy this address.**
-
-### 4. Configure Frontend
-
-```bash
-cd ../client
-
-# Create .env file with contract address
-echo "VITE_CONTRACT_ADDRESS=CAxxxxxxxxx..." > .env
-```
-
-Replace `CAxxxxxxxxx...` with the contract address from step 3.
-
-### 5. Run Frontend Locally
+### 5. Run frontend
 
 ```bash
 cd client
 npm run dev
 ```
 
-Open http://localhost:5173 in your browser and connect your Freighter wallet.
+## Test Proof
 
-## Contract Deployment
+Minimum 3 tests passing screenshot:
 
-### Building the Contract
+![Test Output (3+ passing)](assets/test-output.png)
 
-```bash
-cd contracts
-cargo build --target wasm32-unknown-unknown --release
+Additional test evidence:
+
+![Additional Test Evidence](assets/testevidence.png)
+
+## Deployment (Vercel)
+
+`vercel.json` is configured to build from `client` and output `client/dist`.
+
+Set Vercel environment variable:
+
+- Name: VITE_CONTRACT_ADDRESS
+- Value: CAH7X2U3V5JSG2AURDO5YSERVCWYYKEBGQBPODJOZI5EU36ALQF3CCCZ
+
+## Project Structure
+
+```text
+.
+├── client/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/ProgressBar.jsx
+│   │   └── lib/
+│   │       ├── cache.js
+│   │       └── contract.js
+│   ├── index.html
+│   └── package.json
+├── contracts/
+│   ├── src/lib.rs
+│   ├── Cargo.toml
+│   └── package.json
+├── assets/
+│   ├── demo.mp4
+│   ├── test-output.png
+│   └── testevidence.png
+└── README.md
 ```
 
-This generates WASM (`target/wasm32-unknown-unknown/release/task_registry.wasm`).
+## Notes
 
-### Stellar Testnet Deployment
-
-1. **Get testnet XLM** (for fees):
-   - Visit: https://stellar.org/developers/reference/testnet
-   - Fund your Freighter account
-
-2. **Deploy contract**:
-   ```bash
-   cd contracts
-   cp .env.example .env
-   # Edit .env with your secret key
-   npm run deploy
-   ```
-
-3. **Copy contract address** (starts with `C...`) from output
-
-### Network Configuration
-
-**Testnet** (default):
-- Network: `Test SDF Network ; September 2015`
-- RPC: `https://soroban-testnet.stellar.org:443`
-
-**Mainnet** (production):
-Edit `client/src/lib/contract.js` to change `STELLAR_RPC_URL`
-
-## Frontend Deployment (Vercel)
-
-### Prerequisites
-
-- GitHub account with repository pushed
-- Vercel account (vercel.com)
-
-### Configuration
-
-`vercel.json` is already configured:
-
-```json
-{
-  "buildCommand": "npm install --prefix client && npm run build --prefix client",
-  "outputDirectory": "client/dist"
-}
-```
-
-### Deployment Steps
-
-1. Connect your GitHub repo to Vercel
-2. Add environment variable:
-   - Name: `VITE_CONTRACT_ADDRESS`
-   - Value: `CAxxxxxxxxx...` (your contract address)
-3. Click Deploy
-
-The app will be live at `https://your-project.vercel.app`
-
-## Testing
-
-### Contract Tests
-
-```bash
-cd contracts
-npm test
-```
-
-Runs Rust tests in `src/lib.rs` using Soroban's test framework.
-
-### Manual Testing
-
-1. Connect Freighter wallet to app
-2. Create a task (check status updates)
-3. Toggle task completion (verify state changes)
-4. Refresh (ensure tasks persist)
-5. Check browser console for transaction logs
-
-## Troubleshooting
-
-### "Freighter not found"
-```bash
-# Install Freighter
-# https://freighter.app
-
-# Then refresh the page
-```
-
-### "Failed to deploy contract"
-- Check Soroban CLI: `soroban --version`
-- Update: `cargo install soroban-cli --locked --force`
-- Ensure Rust is up to date: `rustup update`
-
-### "Invalid contract address"
-- Verify address starts with `C`
-- Ensure it's in `client/.env` as `VITE_CONTRACT_ADDRESS=CAxx...`
-
-### "Transaction simulation failed"
-- Ensure testnet XLM in Freighter account
-- Check contract address is correct
-- Review browser console for details
-
-### "Permission denied" from Freighter
-- Unlock Freighter wallet
-- Grant dApp permissions when prompted
-- Refresh page and retry
-
-## Resources
-
-- [Soroban Docs](https://developers.stellar.org/docs/smart-contracts)
-- [Stellar JS SDK](https://github.com/stellar/js-stellar-sdk)
-- [Freighter Wallet](https://freighter.app)
-- [Stellar Testnet](https://stellar.org/developers/reference/testnet)
+- `lockdown-install.js: SES Removing unpermitted intrinsics` in console is expected wallet sandbox behavior.
+- Contract/task interactions now use a compatibility-safe Soroban RPC flow with robust status polling.
