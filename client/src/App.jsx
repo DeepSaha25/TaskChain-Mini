@@ -16,7 +16,8 @@ import {
   STELLAR_RPC_URL,
   STELLAR_NETWORK,
   parseTask,
-  formatStellarAddress
+  formatStellarAddress,
+  isValidStellarContractId
 } from "./lib/contract";
 import { clearCachedTasks, readCachedTasks, writeCachedTasks } from "./lib/cache";
 
@@ -124,6 +125,9 @@ export default function App() {
     try {
       if (!TASK_REGISTRY_ADDRESS) {
         throw new Error("Missing VITE_CONTRACT_ADDRESS in frontend env");
+      }
+      if (!isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
+        throw new Error("Invalid contract ID in build env. Set VITE_CONTRACT_ADDRESS to a Stellar contract ID (starts with C). If deployed on Vercel, update Project Settings -> Environment Variables.");
       }
 
       // Create contract instance
@@ -236,6 +240,9 @@ export default function App() {
       if (!TASK_REGISTRY_ADDRESS) {
         throw new Error("Missing contract address");
       }
+      if (!isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
+        throw new Error("Invalid contract ID in build env. Set VITE_CONTRACT_ADDRESS to a Stellar contract ID (starts with C). If deployed on Vercel, update Project Settings -> Environment Variables.");
+      }
 
       setStatus("Preparing transaction...");
 
@@ -322,6 +329,9 @@ export default function App() {
 
       if (!TASK_REGISTRY_ADDRESS) {
         throw new Error("Missing contract address");
+      }
+      if (!isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
+        throw new Error("Invalid contract ID in build env. Set VITE_CONTRACT_ADDRESS to a Stellar contract ID (starts with C). If deployed on Vercel, update Project Settings -> Environment Variables.");
       }
 
       setStatus("Preparing toggle transaction...");
