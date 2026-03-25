@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stellar/js-sdk": "^12.0.0",
+    "@stellar/js-sdk": "^11.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
