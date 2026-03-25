@@ -7,7 +7,7 @@ import {
 } from "@stellar/stellar-sdk";
 
 // Stellar network configuration
-export const STELLAR_NETWORK = Networks.TESTNET_NETWORK_PASSPHRASE;
+export const STELLAR_NETWORK = Networks.TESTNET;
 
 export const STELLAR_RPC_URL = "https://soroban-testnet.stellar.org";
 
