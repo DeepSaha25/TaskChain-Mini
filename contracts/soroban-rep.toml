@@ -1,6 +1,0 @@
-[registry]
-default = "stellar"
-
-[[registry.stellar.accounts]]
-name = "default"
-secret_key = "${SOROBAN_SECRET_KEY}"
