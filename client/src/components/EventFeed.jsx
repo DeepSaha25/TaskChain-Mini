@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { STELLAR_RPC_URL, TASK_REGISTRY_ADDRESS } from "../lib/contract";
 
 const EVENT_POLL_INTERVAL = 8000; // 8 seconds
@@ -25,12 +25,14 @@ function parseEventTopic(topicVal) {
 export default function EventFeed({ account }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   const fetchEvents = useCallback(async () => {
     if (!TASK_REGISTRY_ADDRESS || !account) return;
 
     try {
-      setLoading(true);
+      // Only show loading indicator on initial fetch
+      if (!hasFetchedRef.current) setLoading(true);
 
       // Use a ledger range going back ~200 ledgers (about 16 minutes on testnet)
       const latestResp = await fetch(STELLAR_RPC_URL, {
@@ -95,6 +97,7 @@ export default function EventFeed({ account }) {
       // Show newest first
       parsed.reverse();
       setEvents(parsed);
+      hasFetchedRef.current = true;
     } catch (err) {
       console.error("Event feed error:", err);
     } finally {

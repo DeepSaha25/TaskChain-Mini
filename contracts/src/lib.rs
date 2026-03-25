@@ -44,6 +44,8 @@ impl TaskRegistry {
 
     /// Create a new task
     pub fn create_task(env: Env, caller: Address, content: String) -> u64 {
+        caller.require_auth();
+
         let next_id_key = DataKey::NextId;
         let next_id: u64 = env.storage()
             .persistent()
@@ -85,6 +87,8 @@ impl TaskRegistry {
     /// Toggle task completion status.
     /// When a task is marked done, an inter-contract-style call mints a reward token.
     pub fn toggle_task(env: Env, caller: Address, id: u64) {
+        caller.require_auth();
+
         let task_key = DataKey::Task(id);
         if let Some(mut task) = env.storage().persistent().get::<_, Task>(&task_key) {
             // Verify ownership
@@ -190,6 +194,7 @@ mod tests {
     #[test]
     fn test_create_task() {
         let env = Env::default();
+        env.mock_all_auths();
         env.ledger().set_timestamp(100);
         
         let contract = TaskRegistry;
@@ -209,6 +214,7 @@ mod tests {
     #[test]
     fn test_toggle_task() {
         let env = Env::default();
+        env.mock_all_auths();
         env.ledger().set_timestamp(100);
         
         let contract = TaskRegistry;
@@ -232,6 +238,7 @@ mod tests {
     #[test]
     fn test_multiple_users() {
         let env = Env::default();
+        env.mock_all_auths();
         let contract = TaskRegistry;
         let user1 = Address::random(&env);
         let user2 = Address::random(&env);
@@ -251,6 +258,7 @@ mod tests {
     #[test]
     fn test_reward_minting_on_task_completion() {
         let env = Env::default();
+        env.mock_all_auths();
         env.ledger().set_timestamp(200);
         
         let contract = TaskRegistry;
@@ -279,6 +287,7 @@ mod tests {
     #[test]
     fn test_no_double_reward_on_re_toggle() {
         let env = Env::default();
+        env.mock_all_auths();
         env.ledger().set_timestamp(300);
 
         let contract = TaskRegistry;
@@ -304,6 +313,7 @@ mod tests {
     #[test]
     fn test_multiple_tasks_reward_accumulation() {
         let env = Env::default();
+        env.mock_all_auths();
         env.ledger().set_timestamp(400);
 
         let contract = TaskRegistry;
