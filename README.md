@@ -1,7 +1,5 @@
 # TaskChain Mini dApp - Stellar Edition
 
-**Migrated from Solidity to Stellar Soroban** ✨
-
 TaskChain Mini is a full-stack Web3 task manager built on the Stellar blockchain using Soroban smart contracts. It features a Rust smart contract, a React frontend with Stellar SDK, and comprehensive testing.
 
 ## 🎮 Submission Links
@@ -12,8 +10,6 @@ TaskChain Mini is a full-stack Web3 task manager built on the Stellar blockchain
 | 💾 **GitHub Repository** | https://github.com/DeepSaha25/TaskChain-Mini |
 | 🎬 **Demo Video** | [View](assets/demo.mp4) |
 | ✅ **Test Results Screenshot** | [View](assets/test-output.png) (3/3 tests passing) |
-
-**Follow [STEP_BY_STEP_GUIDE.md](STEP_BY_STEP_GUIDE.md) for detailed submission instructions (30 minutes total)**
 
 ---
 
@@ -55,8 +51,6 @@ TaskChain Mini is a full-stack Web3 task manager built on the Stellar blockchain
 │   ├── src/
 │   │   └── lib.rs                           # Soroban TaskRegistry contract
 │   ├── Cargo.toml                           # Rust project config
-│   ├── soroban-rep.toml                     # Soroban registry config
-│   ├── deploy.js                            # Deployment script
 │   ├── .env.example
 │   └── package.json
 ├── assets/
@@ -225,18 +219,6 @@ Runs Rust tests in `src/lib.rs` using Soroban's test framework.
 3. Toggle task completion (verify state changes)
 4. Refresh (ensure tasks persist)
 5. Check browser console for transaction logs
-
-## Architecture Changes - Solidity to Stellar
-
-| Feature | Solidity/Ethereum | Rust/Stellar Soroban |
-|---------|------------------|---------------------|
-| Language | Solidity | Rust |
-| Platform | Ethereum | Stellar Testnet |
-| Wallet | MetaMask | Freighter |
-| Integration | ethers.js | @stellar/js-sdk |
-| Contract Calls | Direct function calls | Simulate + Sign + Send |
-| State Storage | Mappings | Soroban Ledger |
-| Testing | Hardhat | Cargo tests |
 
 ## Troubleshooting
 
