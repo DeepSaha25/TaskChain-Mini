@@ -2,6 +2,8 @@
 
 use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Vec};
 
+// ── Data Types ──────────────────────────────────────────
+
 #[derive(Clone)]
 #[contracttype]
 pub struct Task {
@@ -17,24 +19,31 @@ pub enum DataKey {
     NextId,
     Task(u64),
     UserTaskIds(Address),
+    RewardBalance(Address),
+    TotalRewardsMinted,
 }
+
+// ── Contract ────────────────────────────────────────────
 
 #[contract]
 pub struct TaskRegistry;
 
 #[contractimpl]
 impl TaskRegistry {
-    /// Initialize the contract
+    /// Initialize the contract (sets next_id to 1 and total rewards to 0)
     pub fn init(env: Env) {
         let next_id_key = DataKey::NextId;
         if !env.storage().persistent().has(&next_id_key) {
             env.storage().persistent().set(&next_id_key, &1u64);
         }
+        let total_key = DataKey::TotalRewardsMinted;
+        if !env.storage().persistent().has(&total_key) {
+            env.storage().persistent().set(&total_key, &0u64);
+        }
     }
 
     /// Create a new task
     pub fn create_task(env: Env, caller: Address, content: String) -> u64 {
-        // Get and increment next ID
         let next_id_key = DataKey::NextId;
         let next_id: u64 = env.storage()
             .persistent()
@@ -44,7 +53,6 @@ impl TaskRegistry {
         let task_id = next_id;
         env.storage().persistent().set(&next_id_key, &(next_id + 1));
 
-        // Create and store task
         let task = Task {
             id: task_id,
             content: content.clone(),
@@ -74,20 +82,27 @@ impl TaskRegistry {
         task_id
     }
 
-    /// Toggle task completion status
+    /// Toggle task completion status.
+    /// When a task is marked done, an inter-contract-style call mints a reward token.
     pub fn toggle_task(env: Env, caller: Address, id: u64) {
-        // Get task
         let task_key = DataKey::Task(id);
         if let Some(mut task) = env.storage().persistent().get::<_, Task>(&task_key) {
             // Verify ownership
             if task.owner == caller {
-                // Toggle status
+                let was_done = task.done;
                 task.done = !task.done;
 
-                // Store updated task
                 env.storage().persistent().set(&task_key, &task);
 
-                // Emit event
+                // ── Inter-contract call pattern ──
+                // When toggling to done (false → true), mint a reward token.
+                // This simulates a cross-contract call where TaskRegistry invokes
+                // the reward minting logic, similar to calling another contract's
+                // mint() function via env.invoke_contract().
+                if !was_done && task.done {
+                    Self::mint_reward(&env, &caller, 10);
+                }
+
                 env.events().publish(
                     ("task_toggled",),
                     (id, caller, task.done),
@@ -110,7 +125,62 @@ impl TaskRegistry {
             .get(&user_key)
             .unwrap_or_else(|| Vec::new(&env))
     }
+
+    /// Get reward token balance for a user
+    pub fn get_reward_balance(env: Env, user: Address) -> u64 {
+        let balance_key = DataKey::RewardBalance(user);
+        env.storage()
+            .persistent()
+            .get(&balance_key)
+            .unwrap_or(0u64)
+    }
+
+    /// Get total rewards minted across all users
+    pub fn get_total_rewards(env: Env) -> u64 {
+        let total_key = DataKey::TotalRewardsMinted;
+        env.storage()
+            .persistent()
+            .get(&total_key)
+            .unwrap_or(0u64)
+    }
+
+    // ── Internal: Reward Token Minting (Inter-Contract Pattern) ──
+    //
+    // In a production multi-contract setup, this would be a separate
+    // deployed contract invoked via:
+    //   env.invoke_contract::<()>(&reward_contract_id, &symbol, &args);
+    //
+    // Here we implement the reward logic within the same contract but as
+    // a distinct module to demonstrate the inter-contract call pattern.
+    // The toggle_task method calls mint_reward the same way it would
+    // invoke a separate contract's mint function.
+
+    fn mint_reward(env: &Env, recipient: &Address, amount: u64) {
+        // Update user balance
+        let balance_key = DataKey::RewardBalance(recipient.clone());
+        let current: u64 = env.storage()
+            .persistent()
+            .get(&balance_key)
+            .unwrap_or(0u64);
+        env.storage().persistent().set(&balance_key, &(current + amount));
+
+        // Update global counter
+        let total_key = DataKey::TotalRewardsMinted;
+        let total: u64 = env.storage()
+            .persistent()
+            .get(&total_key)
+            .unwrap_or(0u64);
+        env.storage().persistent().set(&total_key, &(total + amount));
+
+        // Emit reward event
+        env.events().publish(
+            ("reward_minted",),
+            (recipient.clone(), amount),
+        );
+    }
 }
+
+// ── Tests ───────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -176,5 +246,82 @@ mod tests {
         
         assert_eq!(user1_tasks.len(), 1);
         assert_eq!(user2_tasks.len(), 1);
+    }
+
+    #[test]
+    fn test_reward_minting_on_task_completion() {
+        let env = Env::default();
+        env.ledger().set_timestamp(200);
+        
+        let contract = TaskRegistry;
+        let user = Address::random(&env);
+        
+        contract.init(env.clone());
+
+        // Create a task
+        let id = contract.create_task(env.clone(), user.clone(), String::from_slice(&env, "Reward task"));
+
+        // Before toggling: reward balance should be 0
+        let balance_before = contract.get_reward_balance(env.clone(), user.clone());
+        assert_eq!(balance_before, 0);
+
+        // Toggle to done → should mint 10 reward tokens
+        contract.toggle_task(env.clone(), user.clone(), id);
+
+        let balance_after = contract.get_reward_balance(env.clone(), user.clone());
+        assert_eq!(balance_after, 10);
+
+        // Total rewards should be 10
+        let total = contract.get_total_rewards(env.clone());
+        assert_eq!(total, 10);
+    }
+
+    #[test]
+    fn test_no_double_reward_on_re_toggle() {
+        let env = Env::default();
+        env.ledger().set_timestamp(300);
+
+        let contract = TaskRegistry;
+        let user = Address::random(&env);
+
+        contract.init(env.clone());
+
+        let id = contract.create_task(env.clone(), user.clone(), String::from_slice(&env, "Double toggle"));
+
+        // Toggle to done → +10 reward
+        contract.toggle_task(env.clone(), user.clone(), id);
+        assert_eq!(contract.get_reward_balance(env.clone(), user.clone()), 10);
+
+        // Toggle back to pending → no additional reward
+        contract.toggle_task(env.clone(), user.clone(), id);
+        assert_eq!(contract.get_reward_balance(env.clone(), user.clone()), 10);
+
+        // Toggle to done again → another +10
+        contract.toggle_task(env.clone(), user.clone(), id);
+        assert_eq!(contract.get_reward_balance(env.clone(), user.clone()), 20);
+    }
+
+    #[test]
+    fn test_multiple_tasks_reward_accumulation() {
+        let env = Env::default();
+        env.ledger().set_timestamp(400);
+
+        let contract = TaskRegistry;
+        let user = Address::random(&env);
+
+        contract.init(env.clone());
+
+        let id1 = contract.create_task(env.clone(), user.clone(), String::from_slice(&env, "Task A"));
+        let id2 = contract.create_task(env.clone(), user.clone(), String::from_slice(&env, "Task B"));
+        let id3 = contract.create_task(env.clone(), user.clone(), String::from_slice(&env, "Task C"));
+
+        // Complete all three tasks
+        contract.toggle_task(env.clone(), user.clone(), id1);
+        contract.toggle_task(env.clone(), user.clone(), id2);
+        contract.toggle_task(env.clone(), user.clone(), id3);
+
+        // 3 tasks × 10 tokens = 30
+        assert_eq!(contract.get_reward_balance(env.clone(), user.clone()), 30);
+        assert_eq!(contract.get_total_rewards(env.clone()), 30);
     }
 }

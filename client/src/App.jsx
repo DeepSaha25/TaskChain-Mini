@@ -3,15 +3,14 @@ import {
   SorobanRpc,
   Contract,
   Address,
-  Keypair,
   nativeToScVal,
   scValToNative,
-  Networks,
   TransactionBuilder,
   BASE_FEE
 } from "@stellar/stellar-sdk";
 import { getAddress, isConnected, requestAccess, signTransaction } from "@stellar/freighter-api";
 import ProgressBar from "./components/ProgressBar";
+import EventFeed from "./components/EventFeed";
 import {
   TASK_REGISTRY_ADDRESS,
   STELLAR_RPC_URL,
@@ -21,8 +20,6 @@ import {
   isValidStellarContractId
 } from "./lib/contract";
 import { clearCachedTasks, readCachedTasks, writeCachedTasks } from "./lib/cache";
-
-const FREIGHTER_TIMEOUT = 3000; // 3 seconds for Freighter popup
 
 function getSimulationErrorMessage(simResp) {
   if (!simResp) return "unknown simulation error";
@@ -56,16 +53,12 @@ function sleep(ms) {
 async function getTransactionStatusXdrSafe(rpcUrl, hash) {
   const response = await fetch(rpcUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: 2,
       method: "getTransaction",
-      params: {
-        hash
-      }
+      params: { hash }
     })
   });
 
@@ -75,7 +68,6 @@ async function getTransactionStatusXdrSafe(rpcUrl, hash) {
 
   const payload = await response.json();
   if (payload.error) {
-    // Treat lookup failures as not yet indexed.
     return { status: "NOT_FOUND", error: payload.error };
   }
 
@@ -107,16 +99,12 @@ async function waitForTransaction(rpcUrl, hash, maxAttempts = 40, delayMs = 1500
 async function sendSignedTransactionXdr(rpcUrl, signedTxXdr) {
   const response = await fetch(rpcUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: 1,
       method: "sendTransaction",
-      params: {
-        transaction: signedTxXdr
-      }
+      params: { transaction: signedTxXdr }
     })
   });
 
@@ -140,11 +128,19 @@ export default function App() {
   const [isFetching, setIsFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sorobanServer, setSorobanServer] = useState(null);
+  const [rewardBalance, setRewardBalance] = useState(0);
 
   const shortAccount = useMemo(() => {
     if (!account) return "";
-    return `${account.slice(0, 6)}...${account.slice(-4)}`;
+    return `${account.slice(0, 6)}…${account.slice(-4)}`;
   }, [account]);
+
+  const taskStats = useMemo(() => {
+    const total = tasks.length;
+    const completed = tasks.filter((t) => t.done).length;
+    const pending = total - completed;
+    return { total, completed, pending };
+  }, [tasks]);
 
   // Initialize Soroban RPC server
   useEffect(() => {
@@ -156,13 +152,13 @@ export default function App() {
     }
   }, []);
 
-  // Check for Freighter wallet availability via official API
+  // Check for Freighter wallet availability
   useEffect(() => {
     const checkFreighter = async () => {
       try {
         const result = await isConnected();
         if (result?.isConnected) {
-          setStatus("Freighter detected. Click 'Connect Freighter' to begin.");
+          setStatus("Freighter detected. Click Connect to begin.");
           return;
         }
       } catch (error) {
@@ -175,6 +171,33 @@ export default function App() {
     checkFreighter();
   }, []);
 
+  // Fetch reward balance (read-only sim)
+  async function fetchRewardBalance() {
+    if (!account || !sorobanServer || !TASK_REGISTRY_ADDRESS) return;
+    try {
+      const contract = new Contract(TASK_REGISTRY_ADDRESS, {});
+      const accountData = await sorobanServer.getAccount(account);
+
+      const builder = new TransactionBuilder(accountData, {
+        fee: BASE_FEE,
+        networkPassphrase: STELLAR_NETWORK
+      });
+
+      const op = contract.call("get_reward_balance", new Address(account).toScVal());
+      builder.addOperation(op);
+      const tx = builder.setTimeout(30).build();
+
+      const simResp = await sorobanServer.simulateTransaction(tx);
+      if (SorobanRpc.Api.isSimulationSuccess(simResp) && simResp.result?.retval) {
+        const bal = scValToNative(simResp.result.retval);
+        setRewardBalance(Number(bal));
+      }
+    } catch (err) {
+      // Silently fail for reward balance — contract may not have the method yet
+      console.debug("Reward balance fetch:", err.message);
+    }
+  }
+
   async function connectWallet() {
     try {
       setStatus("🔗 Connecting to Freighter...");
@@ -184,14 +207,12 @@ export default function App() {
         throw new Error("Freighter extension not available. Please install and enable it.");
       }
 
-      // Request site permission first (required by Freighter before exposing account)
       const accessResult = await requestAccess();
       if (accessResult?.error) {
         const reason = accessResult.error.message || "Freighter denied access";
         throw new Error(`Wallet permission required: ${reason}`);
       }
 
-      // Prefer address from permission response, then fallback to getAddress
       let publicKey = accessResult?.publicKey || "";
       if (!publicKey) {
         const addressResult = await getAddress();
@@ -205,19 +226,24 @@ export default function App() {
         throw new Error("Failed to get public key from Freighter");
       }
 
-      // Verify it's a valid Stellar public key
       formatStellarAddress(publicKey);
       setAccount(publicKey);
       setStatus("✅ Wallet connected successfully!");
       console.log("Connected account:", publicKey);
       
-      // Fetch tasks after connecting
       setTimeout(() => fetchTasks(true), 500);
     } catch (error) {
       const message = error.message || "Failed to connect wallet";
-      setStatus("❌ Connection failed: " + message);
+      setStatus("❌ " + message);
       console.error("Wallet connection error:", error);
     }
+  }
+
+  function disconnectWallet() {
+    setAccount("");
+    setTasks([]);
+    setRewardBalance(0);
+    setStatus("Wallet disconnected. Connect again to continue.");
   }
 
   async function fetchTasks(force = false) {
@@ -236,22 +262,17 @@ export default function App() {
         throw new Error("Missing VITE_CONTRACT_ADDRESS in frontend env");
       }
       if (!isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
-        throw new Error("Invalid contract ID in build env. Set VITE_CONTRACT_ADDRESS to a Stellar contract ID (starts with C). If deployed on Vercel, update Project Settings -> Environment Variables.");
+        throw new Error("Invalid contract ID in build env.");
       }
 
-      // Create contract instance
       const contract = new Contract(TASK_REGISTRY_ADDRESS, {});
-
-      // Build and invoke getMyTaskIds (read-only, doesn't require signing)
       const accountData = await sorobanServer.getAccount(account);
       
-      // Build transaction to read task IDs
       let builder = new TransactionBuilder(accountData, {
         fee: BASE_FEE,
         networkPassphrase: STELLAR_NETWORK
       });
 
-      // Build getMyTaskIds invocation
       const getIdsOp = contract.call(
         "get_user_task_ids",
         new Address(account).toScVal(),
@@ -260,7 +281,6 @@ export default function App() {
       builder.addOperation(getIdsOp);
       const tx = builder.setTimeout(30).build();
 
-      // Simulate first to get resource fees
       const simResp = await sorobanServer.simulateTransaction(tx);
       if (SorobanRpc.Api.isSimulationError(simResp)) {
         throw new Error("Failed to simulate getMyTaskIds");
@@ -280,7 +300,6 @@ export default function App() {
           return;
         }
 
-        // Fetch each task details
         const items = await Promise.all(
           ids.map(async (id) => {
             try {
@@ -326,6 +345,9 @@ export default function App() {
         writeCachedTasks(account, []);
         setStatus("No tasks found.");
       }
+
+      // Also refresh reward balance
+      fetchRewardBalance();
     } catch (error) {
       const message = error.message || "Could not load tasks.";
       setStatus(message);
@@ -348,11 +370,8 @@ export default function App() {
         throw new Error("Wallet not connected or Soroban server not initialized");
       }
 
-      if (!TASK_REGISTRY_ADDRESS) {
-        throw new Error("Missing contract address");
-      }
-      if (!isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
-        throw new Error("Invalid contract ID in build env. Set VITE_CONTRACT_ADDRESS to a Stellar contract ID (starts with C). If deployed on Vercel, update Project Settings -> Environment Variables.");
+      if (!TASK_REGISTRY_ADDRESS || !isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
+        throw new Error("Invalid or missing contract address");
       }
 
       setStatus("Preparing transaction...");
@@ -374,19 +393,16 @@ export default function App() {
       builder.addOperation(createOp);
       const tx = builder.setTimeout(30).build();
 
-      // Simulate to get fees
       setStatus("Simulating transaction...");
       const simResp = await sorobanServer.simulateTransaction(tx);
 
       if (!SorobanRpc.Api.isSimulationSuccess(simResp)) {
-        throw new Error(`Transaction simulation failed: ${getSimulationErrorMessage(simResp)}`);
+        throw new Error(`Simulation failed: ${getSimulationErrorMessage(simResp)}`);
       }
 
-      // Assemble with resource fees
       const assembled = SorobanRpc.assembleTransaction(tx, simResp);
       const unsignedTxXdr = getTransactionXdr(assembled);
 
-      // Sign with Freighter
       setStatus("Waiting for signature...");
       const signResult = await signTransaction(unsignedTxXdr, {
         networkPassphrase: STELLAR_NETWORK,
@@ -395,39 +411,35 @@ export default function App() {
       const signedTxn = signResult?.signedTxXdr;
       if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
-      // Send to network
       setStatus("Submitting transaction...");
       const txResponse = await sendSignedTransactionXdr(STELLAR_RPC_URL, signedTxn);
 
       if (!txResponse?.hash) {
-        throw new Error(`Transaction submission did not return a hash: ${JSON.stringify(txResponse)}`);
+        throw new Error(`No hash returned: ${JSON.stringify(txResponse)}`);
       }
 
       if (txResponse.status === "ERROR") {
-        throw new Error(`Transaction submission failed: ${JSON.stringify(txResponse)}`);
+        throw new Error(`Submission failed: ${JSON.stringify(txResponse)}`);
       }
 
-      // Poll for transaction completion
       const txResult = await waitForTransaction(STELLAR_RPC_URL, txResponse.hash);
 
       if (txResult.status === "FAILED") {
-        throw new Error(`Transaction failed on chain: ${JSON.stringify(txResult)}`);
+        throw new Error(`Transaction failed on chain`);
       }
 
       if (txResult.status !== "SUCCESS") {
-        throw new Error(`Unexpected transaction status: ${txResult.status} (hash: ${txResponse.hash})`);
+        throw new Error(`Unexpected status: ${txResult.status}`);
       }
 
       setNewTask("");
       clearCachedTasks(account);
-      setStatus("Task created successfully. Refreshing...");
+      setStatus("✅ Task created successfully! Refreshing...");
       
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000);
       await fetchTasks(true);
-      setStatus("Task created successfully.");
     } catch (error) {
-      const message = error.message || "Failed to create task";
-      setStatus(message);
+      setStatus("❌ " + (error.message || "Failed to create task"));
       console.error("Create task error:", error);
     } finally {
       setIsSubmitting(false);
@@ -441,14 +453,11 @@ export default function App() {
       if (!connected?.isConnected) throw new Error("Freighter wallet not connected");
 
       if (!account || !sorobanServer) {
-        throw new Error("Wallet not connected or Soroban server not initialized");
+        throw new Error("Wallet not connected");
       }
 
-      if (!TASK_REGISTRY_ADDRESS) {
-        throw new Error("Missing contract address");
-      }
-      if (!isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
-        throw new Error("Invalid contract ID in build env. Set VITE_CONTRACT_ADDRESS to a Stellar contract ID (starts with C). If deployed on Vercel, update Project Settings -> Environment Variables.");
+      if (!TASK_REGISTRY_ADDRESS || !isValidStellarContractId(TASK_REGISTRY_ADDRESS)) {
+        throw new Error("Invalid or missing contract address");
       }
 
       setStatus("Preparing toggle transaction...");
@@ -470,18 +479,16 @@ export default function App() {
       builder.addOperation(toggleOp);
       const tx = builder.setTimeout(30).build();
 
-      // Simulate
       setStatus("Simulating transaction...");
       const simResp = await sorobanServer.simulateTransaction(tx);
 
       if (!SorobanRpc.Api.isSimulationSuccess(simResp)) {
-        throw new Error(`Transaction simulation failed: ${getSimulationErrorMessage(simResp)}`);
+        throw new Error(`Simulation failed: ${getSimulationErrorMessage(simResp)}`);
       }
 
       const assembled = SorobanRpc.assembleTransaction(tx, simResp);
       const unsignedTxXdr = getTransactionXdr(assembled);
 
-      // Sign
       setStatus("Waiting for signature...");
       const signResult = await signTransaction(unsignedTxXdr, {
         networkPassphrase: STELLAR_NETWORK,
@@ -490,38 +497,34 @@ export default function App() {
       const signedTxn = signResult?.signedTxXdr;
       if (!signedTxn) throw new Error(signResult?.error || "Freighter signature failed");
 
-      // Send
       setStatus("Submitting transaction...");
       const txResponse = await sendSignedTransactionXdr(STELLAR_RPC_URL, signedTxn);
 
       if (!txResponse?.hash) {
-        throw new Error(`Transaction submission did not return a hash: ${JSON.stringify(txResponse)}`);
+        throw new Error(`No hash returned`);
       }
 
       if (txResponse.status === "ERROR") {
-        throw new Error(`Transaction submission failed: ${JSON.stringify(txResponse)}`);
+        throw new Error(`Submission failed`);
       }
 
-      // Poll
       const txResult = await waitForTransaction(STELLAR_RPC_URL, txResponse.hash);
 
       if (txResult.status === "FAILED") {
-        throw new Error(`Transaction failed on chain: ${JSON.stringify(txResult)}`);
+        throw new Error(`Transaction failed on chain`);
       }
 
       if (txResult.status !== "SUCCESS") {
-        throw new Error(`Unexpected transaction status: ${txResult.status} (hash: ${txResponse.hash})`);
+        throw new Error(`Unexpected status: ${txResult.status}`);
       }
 
       clearCachedTasks(account);
-      setStatus("Task updated. Refreshing...");
+      setStatus("✅ Task updated! Refreshing...");
       
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sleep(1000);
       await fetchTasks(true);
-      setStatus("Task updated successfully.");
     } catch (error) {
-      const message = error.message || "Failed to update task";
-      setStatus(message);
+      setStatus("❌ " + (error.message || "Failed to update task"));
       console.error("Toggle task error:", error);
     } finally {
       setIsSubmitting(false);
@@ -530,65 +533,182 @@ export default function App() {
 
   return (
     <main className="page-shell">
+      {/* ── Brand Bar ── */}
+      <div className="brand-bar">
+        <span className="brand-logo">⛓️</span>
+        <h1>TaskChain Mini</h1>
+        <span className="network-badge">
+          <span className="pulse-dot" />
+          Stellar Testnet
+        </span>
+      </div>
+
+      {/* ── Wallet Connection ── */}
       <section className="card">
-        <header className="card-header">
-          <h1>TaskChain Mini dApp</h1>
-          <p>Manage your task list on Stellar blockchain with Freighter wallet.</p>
-          <div className="header-actions">
-            <button onClick={connectWallet} disabled={isSubmitting}>
-              {account ? `Connected: ${shortAccount}` : "Connect Freighter"}
-            </button>
-            <button
-              onClick={() => fetchTasks(true)}
-              disabled={!account || isFetching || isSubmitting}
-            >
-              {isFetching ? "Loading..." : "Refresh Tasks"}
-            </button>
+        <div className="wallet-bar">
+          {account ? (
+            <div className="wallet-info">
+              <span className="wallet-icon">🔑</span>
+              {shortAccount}
+            </div>
+          ) : (
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
+              Connect your Freighter wallet to manage tasks on-chain
+            </p>
+          )}
+
+          <div className="wallet-actions">
+            {!account ? (
+              <button
+                className="btn btn-primary"
+                onClick={connectWallet}
+                disabled={isSubmitting}
+              >
+                🦊 Connect Freighter
+              </button>
+            ) : (
+              <>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => fetchTasks(true)}
+                  disabled={isFetching || isSubmitting}
+                >
+                  {isFetching ? "⏳ Loading..." : "🔄 Refresh"}
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={disconnectWallet}
+                >
+                  Disconnect
+                </button>
+              </>
+            )}
           </div>
-        </header>
+        </div>
+      </section>
 
-        <ProgressBar visible={isSubmitting} label="Waiting for blockchain confirmation" />
-
-        <form className="task-form" onSubmit={handleCreateTask}>
-          <label htmlFor="task-content">New task</label>
-          <div className="form-row">
-            <input
-              id="task-content"
-              type="text"
-              placeholder="e.g. Record Orange Belt demo"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              disabled={!account || isSubmitting}
-            />
-            <button type="submit" disabled={!account || isSubmitting || !newTask.trim()}>
-              Add Task
-            </button>
+      {/* ── Stats Dashboard ── */}
+      {account && (
+        <section className="card">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon">📋</div>
+              <div className="stat-value">{taskStats.total}</div>
+              <div className="stat-label">Total Tasks</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">✅</div>
+              <div className="stat-value">{taskStats.completed}</div>
+              <div className="stat-label">Completed</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">⏳</div>
+              <div className="stat-value">{taskStats.pending}</div>
+              <div className="stat-label">Pending</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">🪙</div>
+              <div className="stat-value">{rewardBalance}</div>
+              <div className="stat-label">Rewards</div>
+            </div>
           </div>
-        </form>
+        </section>
+      )}
 
-        <section className="task-list-section">
-          <h2>Your Tasks</h2>
+      {/* ── Create Task ── */}
+      {account && (
+        <section className="card">
+          <div className="section-header">
+            <span className="section-icon">➕</span>
+            <h2>Create Task</h2>
+          </div>
+
+          <ProgressBar visible={isSubmitting} label="Waiting for blockchain confirmation" />
+
+          <form className="task-form" onSubmit={handleCreateTask}>
+            <div className="form-row">
+              <input
+                id="task-content"
+                type="text"
+                placeholder="What needs to be done on-chain?"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                disabled={!account || isSubmitting}
+              />
+              <button
+                className="btn btn-primary"
+                type="submit"
+                disabled={!account || isSubmitting || !newTask.trim()}
+              >
+                ✨ Add Task
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {/* ── Task List ── */}
+      {account && (
+        <section className="card">
+          <div className="section-header">
+            <span className="section-icon">📝</span>
+            <h2>Your Tasks</h2>
+            {tasks.length > 0 && (
+              <span className="section-count">{tasks.length}</span>
+            )}
+          </div>
+
           {tasks.length === 0 ? (
-            <p className="empty">No tasks yet. Create your first one.</p>
+            <div className="empty">
+              <div className="empty-icon">📭</div>
+              <p>No tasks yet. Create your first on-chain task above.</p>
+            </div>
           ) : (
             <ul className="task-list">
-              {tasks.map((task) => (
-                <li key={task.id} className={task.done ? "done" : "pending"}>
-                  <div>
-                    <strong>#{task.id}</strong>
-                    <p>{task.content}</p>
+              {tasks.map((task, idx) => (
+                <li
+                  key={task.id}
+                  className={task.done ? "done" : "pending"}
+                  style={{ animationDelay: `${idx * 0.06}s` }}
+                >
+                  <span className="task-id">#{task.id}</span>
+                  <div className="task-body">
+                    <div className="task-content">{task.content}</div>
+                    <div className="task-meta">
+                      {task.done ? "✅ Completed" : "⏳ Pending"}
+                      {task.createdAt > 0 && ` · Created at ledger time ${task.createdAt}`}
+                    </div>
                   </div>
-                  <button onClick={() => toggleTask(task.id)} disabled={isSubmitting}>
-                    Mark as {task.done ? "Pending" : "Done"}
+                  <button
+                    className={`btn btn-sm ${task.done ? "btn-warning" : "btn-success"}`}
+                    onClick={() => toggleTask(task.id)}
+                    disabled={isSubmitting}
+                  >
+                    {task.done ? "↩ Undo" : "✓ Done"}
                   </button>
                 </li>
               ))}
             </ul>
           )}
         </section>
+      )}
 
-        <footer className="status-bar">Status: {status}</footer>
-      </section>
+      {/* ── Event Feed ── */}
+      {account && (
+        <section className="card">
+          <div className="section-header">
+            <span className="section-icon">📡</span>
+            <h2>Live Event Stream</h2>
+          </div>
+          <EventFeed account={account} />
+        </section>
+      )}
+
+      {/* ── Status Bar ── */}
+      <footer className="status-bar" style={{ width: "100%" }}>
+        <span className="status-dot" />
+        {status}
+      </footer>
     </main>
   );
 }
