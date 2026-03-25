@@ -45,23 +45,41 @@ export default function App() {
     }
   }, []);
 
-  // Check for Freighter wallet on mount
+  // Check for Freighter wallet on mount with retry
   useEffect(() => {
-    if (!window.freighter) {
-      setStatus(
-        "Freighter wallet not found. Please install it from freighter.app to use this dApp."
-      );
-    }
+    let retryCount = 0;
+    const maxRetries = 5;
+    
+    const checkFreighter = () => {
+      if (window.freighter) {
+        setStatus("Freighter detected. Click 'Connect Freighter' to begin.");
+        console.log("✅ Freighter wallet found!");
+      } else {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          // Retry in 500ms (Freighter might be injecting)
+          setTimeout(checkFreighter, 500);
+        } else {
+          setStatus("Freighter wallet not found. Please install it from freighter.app to use this dApp.");
+          console.warn("❌ Freighter wallet could not be detected after retries");
+        }
+      }
+    };
+    
+    // Start checking with a small delay
+    setTimeout(checkFreighter, 100);
   }, []);
 
   async function connectWallet() {
+    // Final check before attempting connection
     if (!window.freighter) {
-      setStatus("Freighter wallet not found. Please install it to connect.");
+      setStatus("❌ Freighter wallet not detected. Is Freighter unlocked and on testnet?");
+      console.error("window.freighter is undefined");
       return;
     }
 
     try {
-      setStatus("Connecting to Freighter...");
+      setStatus("🔗 Connecting to Freighter...");
 
       // Request user's public key from Freighter
       const publicKey = await window.freighter.getPublicKey();
@@ -73,13 +91,14 @@ export default function App() {
       // Verify it's a valid Stellar public key
       formatStellarAddress(publicKey);
       setAccount(publicKey);
-      setStatus("Wallet connected successfully.");
+      setStatus("✅ Wallet connected successfully!");
+      console.log("Connected account:", publicKey);
       
       // Fetch tasks after connecting
       setTimeout(() => fetchTasks(true), 500);
     } catch (error) {
       const message = error.message || "Failed to connect wallet";
-      setStatus(message);
+      setStatus("❌ Connection failed: " + message);
       console.error("Wallet connection error:", error);
     }
   }
