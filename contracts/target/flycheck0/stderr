@@ -1,0 +1,309 @@
+   0.220436900s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint: dependency on `stellar_xdr` is newer than we are 13418888473.127435100s > 13418888020.957309100s "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-env-macros-20.3.0"
+   0.226692400s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint: dependency on `stellar_xdr` is newer than we are 13418888471.969091800s > 13418888022.647902900s "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-env-common-20.3.0"
+   0.228300700s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint: dependency on `stellar_xdr` is newer than we are 13418888473.127435100s > 13418888024.569671700s "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-sdk-macros-20.5.0"
+   0.228399600s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint: fingerprint error for task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("task_registry", ["cdylib"], "D:\\Frontend Projects\\TaskChain-Mini\\contracts\\src\\lib.rs", Edition2021) }
+   0.228436400s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\task-registry-7df7885c108f487f\lib-task_registry`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_libgit2_prerelease
+  12: <unknown>
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   0.237673600s  INFO prepare_target{force=false package_id=soroban-sdk v20.5.0 target="soroban_sdk"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-sdk v20.5.0/Check { test: false }/TargetInner { name_inferred: true, doctest: false, ..: lib_target("soroban_sdk", ["lib"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-sdk-20.5.0\\src\\lib.rs", Edition2021) }
+   0.237699000s  INFO prepare_target{force=false package_id=soroban-sdk v20.5.0 target="soroban_sdk"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-sdk-8f1ccaf7a76f5ba8\lib-soroban_sdk`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_libgit2_prerelease
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   0.250367900s  INFO prepare_target{force=false package_id=soroban-env-host v20.3.0 target="soroban_env_host"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-env-host v20.3.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("soroban_env_host", ["lib"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-env-host-20.3.0\\src\\lib.rs", Edition2021) }
+   0.250397300s  INFO prepare_target{force=false package_id=soroban-env-host v20.3.0 target="soroban_env_host"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-env-host-51cb3cee9ed14077\lib-soroban_env_host`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.256697400s  INFO prepare_target{force=false package_id=soroban-env-common v20.3.0 target="soroban_env_common"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-env-common v20.3.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("soroban_env_common", ["lib"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-env-common-20.3.0\\src\\lib.rs", Edition2021) }
+   0.256718100s  INFO prepare_target{force=false package_id=soroban-env-common v20.3.0 target="soroban_env_common"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-env-common-8295d40db9a8662c\lib-soroban_env_common`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_libgit2_prerelease
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: <unknown>
+  19: git_midx_writer_dump
+  20: git_filter_source_repo
+  21: git_midx_writer_dump
+  22: BaseThreadInitThunk
+  23: RtlUserThreadStart
+   0.258491900s  INFO prepare_target{force=false package_id=soroban-env-macros v20.3.0 target="soroban_env_macros"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-env-macros v20.3.0/Build/TargetInner { name_inferred: true, for_host: true, proc_macro: true, ..: lib_target("soroban_env_macros", ["proc-macro"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-env-macros-20.3.0\\src\\lib.rs", Edition2021) }
+   0.258510400s  INFO prepare_target{force=false package_id=soroban-env-macros v20.3.0 target="soroban_env_macros"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-env-macros-33561aefa39a557d\lib-soroban_env_macros`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: git_libgit2_prerelease
+  16: <unknown>
+  17: <unknown>
+  18: <unknown>
+  19: <unknown>
+  20: git_midx_writer_dump
+  21: git_filter_source_repo
+  22: git_midx_writer_dump
+  23: BaseThreadInitThunk
+  24: RtlUserThreadStart
+   0.266196000s  INFO prepare_target{force=false package_id=stellar-xdr v20.1.0 target="stellar_xdr"}: cargo::core::compiler::fingerprint: fingerprint error for stellar-xdr v20.1.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("stellar_xdr", ["lib"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\stellar-xdr-20.1.0\\src\\lib.rs", Edition2021) }
+   0.266224300s  INFO prepare_target{force=false package_id=stellar-xdr v20.1.0 target="stellar_xdr"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\stellar-xdr-0311332deee7ce01\lib-stellar_xdr`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: git_libgit2_prerelease
+  16: <unknown>
+  17: <unknown>
+  18: <unknown>
+  19: <unknown>
+  20: git_midx_writer_dump
+  21: git_filter_source_repo
+  22: git_midx_writer_dump
+  23: BaseThreadInitThunk
+  24: RtlUserThreadStart
+   0.269364200s  INFO prepare_target{force=false package_id=soroban-ledger-snapshot v20.5.0 target="soroban_ledger_snapshot"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-ledger-snapshot v20.5.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("soroban_ledger_snapshot", ["lib"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-ledger-snapshot-20.5.0\\src\\lib.rs", Edition2021) }
+   0.269384600s  INFO prepare_target{force=false package_id=soroban-ledger-snapshot v20.5.0 target="soroban_ledger_snapshot"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-ledger-snapshot-a31df9467984d1fd\lib-soroban_ledger_snapshot`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.270050500s  INFO prepare_target{force=false package_id=soroban-sdk-macros v20.5.0 target="soroban_sdk_macros"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-sdk-macros v20.5.0/Build/TargetInner { name_inferred: true, doctest: false, for_host: true, proc_macro: true, ..: lib_target("soroban_sdk_macros", ["proc-macro"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-sdk-macros-20.5.0\\src\\lib.rs", Edition2021) }
+   0.270070900s  INFO prepare_target{force=false package_id=soroban-sdk-macros v20.5.0 target="soroban_sdk_macros"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-sdk-macros-d599cfb5549eddec\lib-soroban_sdk_macros`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.272032600s  INFO prepare_target{force=false package_id=soroban-env-common v20.3.0 target="soroban_env_common"}: cargo::core::compiler::fingerprint: fingerprint error for soroban-env-common v20.3.0/Build/TargetInner { name_inferred: true, ..: lib_target("soroban_env_common", ["lib"], "C:\\Users\\Deep Saha\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\soroban-env-common-20.3.0\\src\\lib.rs", Edition2021) }
+   0.272052000s  INFO prepare_target{force=false package_id=soroban-env-common v20.3.0 target="soroban_env_common"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\soroban-env-common-f8b0ab687f8137a8\lib-soroban_env_common`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_libgit2_prerelease
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: <unknown>
+  19: git_midx_writer_dump
+  20: git_filter_source_repo
+  21: git_midx_writer_dump
+  22: BaseThreadInitThunk
+  23: RtlUserThreadStart
+   0.276012500s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint: fingerprint error for task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("task_registry", ["cdylib"], "D:\\Frontend Projects\\TaskChain-Mini\\contracts\\src\\lib.rs", Edition2021) }
+   0.276031700s  INFO prepare_target{force=false package_id=task-registry v1.0.0 (D:\Frontend Projects\TaskChain-Mini\contracts) target="task_registry"}: cargo::core::compiler::fingerprint:     err: failed to read `D:\Frontend Projects\TaskChain-Mini\contracts\target\debug\.fingerprint\task-registry-6cb6a16c0aa9b04a\test-lib-task_registry`
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_libgit2_prerelease
+  12: <unknown>
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+    Checking stellar-xdr v20.1.0
+   Compiling soroban-env-macros v20.3.0
+   Compiling soroban-env-common v20.3.0
+   Compiling soroban-sdk-macros v20.5.0
+error: could not compile `stellar-xdr` (lib) due to 1836 previous errors
