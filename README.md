@@ -6,13 +6,11 @@ TaskChain Mini is a full-stack Web3 task manager built on the Stellar blockchain
 
 ## 🎮 Submission Links
 
-> **Replace the XXX values below with your actual links after completing deployment**
-
 | Item | Link |
 |------|------|
-| 🌐 **Live App** | `https://taskchain-mini.vercel.app` |
-| 💾 **GitHub Repository** | `https://github.com/YOUR_USERNAME/TaskChain-Mini` |
-| 🎬 **Demo Video (1 min)** | `https://youtu.be/YOUR_VIDEO_ID` |
+| 🌐 **Live App** | https://taskchainmini.vercel.app |
+| 💾 **GitHub Repository** | https://github.com/DeepSaha25/TaskChain-Mini |
+| 🎬 **Demo Video** | [View](assets/demo.mp4) |
 | ✅ **Test Results Screenshot** | [View](assets/test-output.png) (3/3 tests passing) |
 
 **Follow [STEP_BY_STEP_GUIDE.md](STEP_BY_STEP_GUIDE.md) for detailed submission instructions (30 minutes total)**
