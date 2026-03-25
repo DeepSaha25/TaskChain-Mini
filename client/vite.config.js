@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  root: "..",
-  envDir: "client",
-  publicDir: "client/public",
+  root: ".",
+  envDir: ".",
+  publicDir: "public",
   resolve: {
     alias: {
       react: path.resolve(__dirname, "node_modules/react"),
@@ -17,7 +17,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: "client/dist",
+    outDir: "dist",
     emptyOutDir: true
   },
   plugins: [react()]
