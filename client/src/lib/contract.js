@@ -14,6 +14,11 @@ export const STELLAR_RPC_URL = "https://soroban-testnet.stellar.org";
 // Contract address from environment
 export const TASK_REGISTRY_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "";
 
+export function isValidStellarContractId(contractId) {
+  // Soroban contract IDs are StrKey addresses that start with C and are 56 chars.
+  return typeof contractId === "string" && /^C[A-Z2-7]{55}$/.test(contractId);
+}
+
 // Contract spec - matches Soroban contract methods
 export const TASK_REGISTRY_SPEC = {
   methods: {
