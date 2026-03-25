@@ -4,7 +4,7 @@ import {
   Keypair,
   nativeToScval,
   scValToNative
-} from "@stellar/js-sdk";
+} from "@stellar/stellar-sdk";
 
 // Stellar network configuration
 export const STELLAR_NETWORK = Networks.TESTNET_NETWORK_PASSPHRASE;
