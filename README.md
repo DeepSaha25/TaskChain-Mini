@@ -9,15 +9,6 @@ It includes a Rust smart contract, a React frontend with Freighter wallet integr
 - Repository: https://github.com/DeepSaha25/TaskChain-Mini
 - Demo video (local repo file): [assets/demo.mp4](assets/demo.mp4)
 
-## Submission Checklist
-
-- [x] Public GitHub repository
-- [x] Mini-dApp fully functional (wallet connect, create task, toggle task, fetch tasks)
-- [x] Minimum 3 tests passing
-- [x] README with complete documentation
-- [x] 1-minute demo video link included
-- [x] Minimum 3+ meaningful commits
-
 ## Features
 
 - Freighter wallet connection with explicit permission flow
